@@ -1856,11 +1856,11 @@ Renderer.prototype.renderNode = function(node, camera)
     gl.bindTexture(gl.TEXTURE_2D, LI.tileLightIdTexture);
     node._uniforms.u_tileLightIdTexture = slot;
 
-    node._uniforms.u_mvp = camera._viewprojection_matrix;
+    node._uniforms.u_mvp = camera._mvp_matrix;
 	node._uniforms.u_model = node._global_matrix;
 	node._uniforms.u_eye = camera.position; 
 	node._uniforms.u_numLights = LI.NUM_LIGHTS;
-	node._uniforms.u_ambient = vec3.fromValues(0.0,0.0,0.0);
+	node._uniforms.u_ambient = vec3.fromValues(0.1,0.1,0.1);
 	//END ADDED DANI
 
 	shader.uniforms( this._uniforms ); //globals
@@ -3332,7 +3332,7 @@ Renderer.prototype.createShaders = function()
 	');
 	gl.shaders["light_debug"] = this._light_debug;
 
-	this._light_culling_test = new GL.Shader('\
+	this._light_culling = new GL.Shader('\
 		precision highp float;\
 		attribute vec3 a_vertex;\
 		attribute vec3 a_normal;\
@@ -3344,67 +3344,91 @@ Renderer.prototype.createShaders = function()
 		','\
 		precision highp float;\
 		uniform int u_numLights;\
-		uniform int u_numTileHorizontal;\
-		uniform sampler2D u_info;\
+		uniform sampler2D u_lights;\
+		uniform sampler2D u_lightsRadius;\
 		uniform int u_tileSize;\
-		uniform int u_totalTiles;\
+		uniform int u_screenWidth;\
+		uniform int u_screenHeight;\
+		uniform mat4 u_invViewProjMatrix;\
 		void main() {\
 			ivec2 pixelIdx = ivec2(gl_FragCoord.xy);\
-			pixelIdx = pixelIdx / u_tileSize;\
-			float tileId = float(pixelIdx.x + (pixelIdx.y * u_numTileHorizontal));\
-			vec2 uv = vec2( (float(tileId) + 0.5) / float(u_totalTiles), 0.5);\
-			vec3 aux = texture2D(u_info, uv).xyz;\
-			float val = aux.y / float(u_numLights);\
-			gl_FragColor = vec4(val, val, val, 1.0);\
+			ivec2 tileIdx = pixelIdx / u_tileSize;\
+			ivec2 pixel0 = pixelIdx / u_tileSize;\
+			ivec2 diff = pixelIdx - pixel0;\
+			float pixel = float(diff.x + (diff.y * u_tileSize));\
+			vec2 uv = vec2( (float(pixel) + 0.5) / float(u_numLights), 0.5);\
+			vec3 lightPosition = texture2D(u_lights, uv).xyz;\
+			float lightRadius = texture2D(u_lightsRadius, uv).w;\
+			\
+			vec2 fullScreenSize = vec2(u_screenWidth, u_screenHeight);\
+			vec2 ndcTileMin = 2.0 * vec2(pixel0) / fullScreenSize - vec2(1.0);\
+        	vec2 ndcTileMax = 2.0 * vec2(pixel0 + ivec2(u_tileSize)) / fullScreenSize - vec2(1.0);\
+			vec4 tilePoint1 = vec4(ndcTileMin.x, ndcTileMin.y, 0.0 ,1.0);\
+			vec4 tilePoint2 = vec4(ndcTileMin.x, ndcTileMax.y, 0.0 ,1.0);\
+			vec4 tilePoint3 = vec4(ndcTileMax.x, ndcTileMin.y, 0.0 ,1.0);\
+			vec4 tilePoint4 = vec4(ndcTileMax.x, ndcTileMax.y, 0.0 ,1.0);\
+			vec4 tilePoint5 = vec4(ndcTileMin.x, ndcTileMin.y, 1.0 ,1.0);\
+			vec4 tilePoint6 = vec4(ndcTileMin.x, ndcTileMax.y, 1.0 ,1.0);\
+			vec4 tilePoint7 = vec4(ndcTileMax.x, ndcTileMin.y, 1.0 ,1.0);\
+			vec4 tilePoint8 = vec4(ndcTileMax.x, ndcTileMax.y, 1.0 ,1.0);\
+			\
+			tilePoint1 = u_invViewProjMatrix * tilePoint1;\
+			vec3 viewTilePoint1 = vec3(tilePoint1.x / tilePoint1.w, tilePoint1.y / tilePoint1.w, tilePoint1.z / tilePoint1.w);\
+			tilePoint2 = u_invViewProjMatrix * tilePoint2;\
+			vec3 viewTilePoint2 = vec3(tilePoint2.x / tilePoint2.w, tilePoint2.y / tilePoint2.w, tilePoint2.z / tilePoint2.w);\
+			tilePoint3 = u_invViewProjMatrix * tilePoint3;\
+			vec3 viewTilePoint3 = vec3(tilePoint3.x / tilePoint3.w, tilePoint3.y / tilePoint3.w, tilePoint3.z / tilePoint3.w);\
+			tilePoint4 = u_invViewProjMatrix * tilePoint4;\
+			vec3 viewTilePoint4 = vec3(tilePoint4.x / tilePoint4.w, tilePoint4.y / tilePoint4.w, tilePoint4.z / tilePoint4.w);\
+			tilePoint5 = u_invViewProjMatrix * tilePoint5;\
+			vec3 viewTilePoint5 = vec3(tilePoint5.x / tilePoint5.w, tilePoint5.y / tilePoint5.w, tilePoint5.z / tilePoint5.w);\
+			tilePoint6 = u_invViewProjMatrix * tilePoint6;\
+			vec3 viewTilePoint6 = vec3(tilePoint6.x / tilePoint6.w, tilePoint6.y / tilePoint6.w, tilePoint6.z / tilePoint6.w);\
+			tilePoint7 = u_invViewProjMatrix * tilePoint7;\
+			vec3 viewTilePoint7 = vec3(tilePoint7.x / tilePoint7.w, tilePoint7.y / tilePoint7.w, tilePoint7.z / tilePoint7.w);\
+			tilePoint8 = u_invViewProjMatrix * tilePoint8;\
+			vec3 viewTilePoint8 = vec3(tilePoint8.x / tilePoint8.w, tilePoint8.y / tilePoint8.w, tilePoint8.z / tilePoint8.w);\
+			\
+			vec3 cameraPosition = vec3(0.0,0.0,0.0);\
+			vec3 planeNormal = cross(viewTilePoint2-cameraPosition, viewTilePoint1-cameraPosition);\
+			float planeDistance = dot(planeNormal, viewTilePoint6);\
+			vec4 leftPlane = vec4(planeNormal, planeDistance);\
+			planeNormal = cross(viewTilePoint3-cameraPosition, viewTilePoint4-cameraPosition);\
+			planeDistance = dot(planeNormal, viewTilePoint7);\
+			vec4 rightPlane = vec4(planeNormal, planeDistance);\
+			planeNormal = cross(viewTilePoint1-cameraPosition, viewTilePoint3-cameraPosition);\
+			planeDistance = dot(planeNormal, viewTilePoint5);\
+			vec4 topPlane = vec4(planeNormal, planeDistance);\
+			planeNormal = cross(viewTilePoint1-cameraPosition, viewTilePoint3-cameraPosition);\
+			planeDistance = dot(planeNormal, viewTilePoint5);\
+			vec4 bottomPlane = vec4(planeNormal, planeDistance);\
+			planeNormal = cross(viewTilePoint2-viewTilePoint1, viewTilePoint4-viewTilePoint1);\
+			planeDistance = dot(planeNormal, viewTilePoint3);\
+			vec4 nearPlane = vec4(planeNormal, planeDistance);\
+			planeNormal = cross(viewTilePoint8-viewTilePoint7, viewTilePoint6-viewTilePoint7);\
+			planeDistance = dot(planeNormal, viewTilePoint5);\
+			vec4 farPlane = vec4(planeNormal, planeDistance);\
+			\
+			int inside = 1;\
+			if(-lightRadius > dot(leftPlane.xyz, lightPosition) + leftPlane.w)\
+				inside = inside - 1;\
+			if(-lightRadius > dot(rightPlane.xyz, lightPosition) + rightPlane.w)\
+				inside = inside - 1;\
+			if(-lightRadius > dot(topPlane.xyz, lightPosition) + topPlane.w)\
+				inside = inside - 1;\
+			if(-lightRadius > dot(bottomPlane.xyz, lightPosition) + bottomPlane.w)\
+				inside = inside - 1;\
+			if(-lightRadius > dot(nearPlane.xyz, lightPosition) + nearPlane.w)\
+				inside = inside - 1;\
+			if(-lightRadius > dot(farPlane.xyz, lightPosition) + farPlane.w)\
+				inside = inside - 1;\
+			if(inside < 1)\
+				gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);\
+			else\
+				gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);\
 		}\
-		');
-	gl.shaders["light_culling_test"] = this._light_culling_test;
-
-
-this._forward_plus_test = new GL.Shader('\
-		precision highp float;\
-		attribute vec3 a_vertex;\
-		attribute vec3 a_normal;\
-		attribute vec2 a_coord;\
-		varying vec2 v_coord;\
-		varying vec3 v_normal;\
-		varying vec4 v_position;\
-		uniform mat4 u_mvp;\
-		uniform mat4 u_model;\
-		void main() {\n\
-			v_coord = a_coord;\n\
-			v_position = u_model * vec4(a_vertex,1);\
-			v_normal = (u_model * vec4(a_normal,0.0)).xyz;\n\
-			gl_Position = u_mvp * vec4(a_vertex,1.0);\n\
-		}\
-		','\
-		precision highp float;\
-		varying vec2 v_coord;\
-		varying vec3 v_normal;\
-		varying vec4 v_position;\
-		uniform int u_numLights;\
-		uniform vec3 u_eye;\
-		uniform sampler2D u_lightPositionTexture;\
-		uniform sampler2D u_lightColorTexture;\
-		uniform int u_numTileHorizontal;\
-		uniform int u_tileSize;\
-		uniform vec3 u_ambient;\
-		uniform sampler2D u_color_texture;\
-		uniform int u_totalTiles;\
-		uniform sampler2D u_tileGrid;\
-		uniform sampler2D u_tileLightIdTexture;\
-		uniform int u_totalLightIndexes;\
-		void main() {\
-			ivec2 pixelIdx = ivec2(gl_FragCoord.xy);\
-			pixelIdx = pixelIdx / u_tileSize;\
-			float tileId = float(pixelIdx.x + (pixelIdx.y * u_numTileHorizontal));\
-			vec2 uv = vec2( (float(tileId) + 0.5) / float(u_totalTiles), 0.5);\
-			vec3 aux = texture2D(u_tileGrid, uv).xyz;\
-			float val = aux.y / float(u_numLights);\
-			gl_FragColor = vec4(val, val, val, 1.0);\
-		}\
-		');
-	gl.shaders["forward_plus_test"] = this._forward_plus_test;
+	');
+	gl.shaders["light_culling"] = this._light_culling;	
 
 	this._forward_plus = new GL.Shader('\
 		precision highp float;\
@@ -3484,7 +3508,6 @@ this._forward_plus_test = new GL.Shader('\
 	gl.shaders["forward_plus"] = this._forward_plus;
 }
 
-//u_totalLightIdx
 /**
 * Billboard class to hold an scene item, used for camera aligned objects
 * @class Billboard

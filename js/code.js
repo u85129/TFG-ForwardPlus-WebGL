@@ -51,13 +51,9 @@ function init()
 		scaling: [1,1,1],
 		color: [1,1,1,1],
 		mesh: "sponza",
-		shader: "forward_plus",
+		shader: "new_textured_phong",
 		texture: "lee_specular",
 		uniforms: {
-			u_numTileHorizontal: lights.totalTilesX,
-			u_tileSize: lights.TILE_SIZE,
-			u_totalTiles: lights.totalTiles,
-			u_totalLightIndexes: lights.lightIndexList.length
 		}
 	});
 
@@ -73,7 +69,7 @@ function init()
 				renderer.render(scene, camera);
 				break;
 			case 2: // TILE DEBUG
-				lights.lightCullingTest(camera);
+				lights.lightCulling(camera, true);
 				break;
 			case 3: // FORWARD
 				renderer.render(scene, camera);
@@ -90,10 +86,9 @@ function init()
 		switch(mode) {
 		    case 1: // FORWARD +
 		        scene.update(dt);
-		        lights.lightCulling(camera);
+		        lights.lightCulling(camera, false);
 		        break;
 		    case 2: // TILE DEBUG
-		        lights.lightCulling(camera);
 		        break;
 		    case 3: // FORWARD
 		        scene.update(dt);
