@@ -60,7 +60,6 @@ function init()
 	scene.root.addChild( node );
 
 
-
 	//main draw function
 	context.ondraw = function(){
 		renderer.clear(bg_color);
