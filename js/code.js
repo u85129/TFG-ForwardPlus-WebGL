@@ -31,7 +31,7 @@ function init()
 	renderer.loadMesh("sponza.obj", "sponza", null);
 
 	//create texture
-	renderer.loadTexture("lee_color_specular.jpg", {temp_color:[80,120,40,255], minFilter: gl.LINEAR_MIPMAP_LINEAR, name: "lee_specular"}, null);
+	renderer.loadTexture("textures/spnza_bricks_a_diff.jpg", {temp_color:[80,120,40,255], minFilter: gl.LINEAR_MIPMAP_LINEAR, name: "lee_specular"}, null);
 	
 	//create camera
 	var camera = new RD.Camera();

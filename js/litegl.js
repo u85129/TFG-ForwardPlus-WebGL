@@ -10462,6 +10462,10 @@ Mesh.parseOBJ = function(text, options)
 {
 	options = options || {};
 
+	var support_uint = true;
+	var skip_indices = options.noindex ? options.noindex : false;
+	//skip_indices = true;
+
 	//final arrays (packed, lineal [ax,ay,az, bx,by,bz ...])
 	var positionsArray = [ ];
 	var texcoordsArray = [ ];
@@ -10484,6 +10488,7 @@ Mesh.parseOBJ = function(text, options)
 	var y   = 0.0;
 	var z   = 0.0;
 	var tokens = null;
+	var mtllib = null;
 
 	var hasPos = false;
 	var hasTex = false;
@@ -10494,14 +10499,15 @@ Mesh.parseOBJ = function(text, options)
 	var negative_offset = -1; //used for weird objs with negative indices
 	var max_index = 0;
 
-	var skip_indices = options.noindex ? options.noindex : (text.length > 10000000 ? true : false);
 	//trace("SKIP INDICES: " + skip_indices);
-	var flip_axis = options.flipAxis;
+	var flip_axis = (this.flipAxis || options.flipAxis);
 	var flip_normals = (flip_axis || options.flipNormals);
 
 	//used for mesh groups (submeshes)
 	var group = null;
+	var group_id = 0;
 	var groups = [];
+	var groups_by_name = {};
 	var materials_found = {};
 
 	var V_CODE = 1;
@@ -10512,14 +10518,24 @@ Mesh.parseOBJ = function(text, options)
 	var O_CODE = 6;
 	var codes = { v: V_CODE, vt: VT_CODE, vn: VN_CODE, f: F_CODE, g: G_CODE, o: O_CODE };
 
-
 	var lines = text.split("\n");
 	var length = lines.length;
 	for (var lineIndex = 0;  lineIndex < length; ++lineIndex) {
-		line = lines[lineIndex].replace(/[ \t]+/g, " ").replace(/\s\s*$/, ""); //trim
+		var line = lines[lineIndex];
+		line = line.replace(/[ \t]+/g, " ").replace(/\s\s*$/, ""); //better than trim
 
-		if (line[0] == "#") continue;
-		if(line == "") continue;
+		if(line[ line.length - 1 ] == "\\") //breakline
+		{
+			lineIndex += 1;
+			var next_line = lines[lineIndex].replace(/[ \t]+/g, " ").replace(/\s\s*$/, ""); //better than trim
+			line = (line.substr(0,line.length - 1) + next_line).replace(/[ \t]+/g, " ").replace(/\s\s*$/, "");
+		}
+		
+
+		if (line[0] == "#")
+			continue;
+		if(line == "")
+			continue;
 
 		tokens = line.split(" ");
 		var code = codes[ tokens[0] ];
@@ -10536,18 +10552,7 @@ Mesh.parseOBJ = function(text, options)
 		{
 			x = parseFloat(tokens[1]);
 			y = parseFloat(tokens[2]);
-			if( code != VT_CODE )
-			{
-				if(tokens[3] == '\\') //super weird case, OBJ allows to break lines with slashes...
-				{
-					//HACK! only works if the var is the thirth position...
-					++lineIndex;
-					line = lines[lineIndex].replace(/[ \t]+/g, " ").replace(/\s\s*$/, ""); //better than trim
-					z = parseFloat(line);
-				}
-				else
-					z = parseFloat(tokens[3]);
-			}
+			z = parseFloat(tokens[3]);
 		}
 
 		if (code == V_CODE) {
@@ -10569,13 +10574,15 @@ Mesh.parseOBJ = function(text, options)
 		else if (code == F_CODE) {
 			parsingFaces = true;
 
-			if (tokens.length < 4) continue; //faces with less that 3 vertices? nevermind
+			if (tokens.length < 4)
+				continue; //faces with less that 3 vertices? nevermind
 
 			//for every corner of this polygon
 			var polygon_indices = [];
 			for (var i=1; i < tokens.length; ++i) 
 			{
-				if (!(tokens[i] in facemap) || skip_indices) 
+				var faceid = group_id + ":" + tokens[i];
+				if (  !(faceid in facemap) || skip_indices )
 				{
 					f = tokens[i].split("/");
 
@@ -10595,11 +10602,18 @@ Mesh.parseOBJ = function(text, options)
 						nor = parseInt(f[2]) - 1;
 					}
 					else {
-						console.err("Problem parsing: unknown number of values per face");
+						console.log("Problem parsing: unknown number of values per face");
 						return false;
 					}
 
-					if(i > 3 && skip_indices) //break polygon in triangles
+					/*
+					//pos = Math.abs(pos); tex = Math.abs(tex); nor = Math.abs(nor);
+					if(pos < 0) pos = positions.length/3 + pos - negative_offset;
+					if(tex < 0) tex = texcoords.length/2 + tex - negative_offset;
+					if(nor < 0) nor = normals.length/3 + nor - negative_offset;
+					*/
+
+					if(i > 3 && skip_indices) //polys
 					{
 						//first
 						var pl = positionsArray.length;
@@ -10613,54 +10627,65 @@ Mesh.parseOBJ = function(text, options)
 						normalsArray.push( normalsArray[pl - 3], normalsArray[pl - 2], normalsArray[pl - 1]);
 					}
 
-					//add new vertex
 					x = 0.0;
 					y = 0.0;
 					z = 0.0;
-					if ((pos * 3 + 2) < positions.length) {
+					if ((pos * 3 + 2) < positions.length)
+					{
 						hasPos = true;
+						if(pos < 0) //negative indices are relative to the end
+							pos = positions.length / 3 + pos + 1;
 						x = positions[pos*3+0];
 						y = positions[pos*3+1];
 						z = positions[pos*3+2];
 					}
-					positionsArray.push(x,y,z);
 
-					//add new texture coordinate
+					positionsArray.push(x,y,z);
+					//positionsArray.push([x,y,z]);
+
 					x = 0.0;
 					y = 0.0;
-					if ((tex * 2 + 1) < texcoords.length) {
+					if ((tex * 2 + 1) < texcoords.length)
+					{
 						hasTex = true;
+						if(tex < 0) //negative indices are relative to the end
+							tex = texcoords.length / 2 + tex + 1;
 						x = texcoords[tex*2+0];
 						y = texcoords[tex*2+1];
 					}
 					texcoordsArray.push(x,y);
+					//texcoordsArray.push([x,y]);
 
-					//add new normal
 					x = 0.0;
 					y = 0.0;
 					z = 1.0;
 					if(nor != -1)
 					{
-						if ((nor * 3 + 2) < normals.length) {
+						if ((nor * 3 + 2) < normals.length)
+						{
 							hasNor = true;
+
+							if(nor < 0)
+								nor = normals.length / 3 + nor + 1;
 							x = normals[nor*3+0];
 							y = normals[nor*3+1];
 							z = normals[nor*3+2];
 						}
 						
 						normalsArray.push(x,y,z);
+						//normalsArray.push([x,y,z]);
 					}
 
 					//Save the string "10/10/10" and tells which index represents it in the arrays
 					if(!skip_indices)
-						facemap[tokens[i]] = index++;
+						facemap[ faceid ] = index++;
 				}//end of 'if this token is new (store and index for later reuse)'
 
 				//store key for this triplet
 				if(!skip_indices)
 				{
-					var final_index = facemap[tokens[i]];
-					polygon_indices.push(final_index);
+					var final_index = facemap[ faceid ];
+					polygon_indices.push( final_index );
 					if(max_index < final_index)
 						max_index = final_index;
 				}
@@ -10676,39 +10701,60 @@ Mesh.parseOBJ = function(text, options)
 				}
 			}
 		}
-		else if (code == G_CODE || tokens[0] == "usemtl") {
+		else if ( code == G_CODE || code == O_CODE)
+		{
 			negative_offset = positions.length / 3 - 1;
 
 			if(tokens.length > 1)
 			{
+				var group_pos = (indicesArray.length ? indicesArray.length : positionsArray.length / 3);
 				if(group != null)
 				{
-					group.length = indicesArray.length - group.start;
-					if(group.length > 0)
+					group.length = group_pos - group.start;
+					if(group.length > 0) //there are triangles...
+					{
+						groups_by_name[ group_name ] = group;
 						groups.push(group);
+						group_id++;
+					}
 				}
 
+				var group_name = tokens[1];
+				if(groups_by_name[group_name])
+					group_name = group_name + "." + group_id;
+
 				group = {
-					name: tokens[1],
-					start: indicesArray.length,
+					name: group_name,
+					start: group_pos,
 					length: -1,
 					material: ""
 				};
+
+				/*
+				if(tokens[0] == "g")
+				{
+					group_vertex_start = positions.length / 3;
+					group_normal_start = normals.length / 3;
+					group_coord_start = texcoords.length / 2;
+				}
+				*/
 			}
+		}
+		else if (tokens[0] == "mtllib") {
+			mtllib = tokens[1];
 		}
 		else if (tokens[0] == "usemtl") {
 			if(group)
 				group.material = tokens[1];
 		}
-		/*
-		else if (tokens[0] == "o" || tokens[0] == "s") {
+		else if ( tokens[0] == "s" ) { //tokens[0] == "o"
 			//ignore
 		}
 		else
 		{
-			//console.log("unknown code: " + line);
+			console.warn("unknown code: " + line);
+			break;
 		}
-		*/
 	}
 
 	if(!positions.length)
@@ -10724,7 +10770,7 @@ Mesh.parseOBJ = function(text, options)
 	}
 
 	//deindex streams
-	if((max_index > 256*256 || skip_indices ) && indicesArray.length > 0)
+	if((max_index > 256*256 || skip_indices ) && indicesArray.length > 0 && !support_uint )
 	{
 		console.log("Deindexing mesh...")
 		var finalVertices = new Float32Array(indicesArray.length * 3);
@@ -10744,6 +10790,7 @@ Mesh.parseOBJ = function(text, options)
 		if(finalTexCoords)
 			texcoordsArray = finalTexCoords;
 		indicesArray = null;
+		max_index = 0;
 	}
 
 	//Create final mesh object
@@ -10757,7 +10804,7 @@ Mesh.parseOBJ = function(text, options)
 	if (hasTex && texcoordsArray.length > 0)
 		mesh.coords = new Float32Array(texcoordsArray);
 	if (indicesArray && indicesArray.length > 0)
-		mesh.triangles = new Uint16Array(indicesArray);
+		mesh.triangles = new (support_uint && max_index > 256*256 ? Uint32Array : Uint16Array)(indicesArray);
 
 	var info = {};
 

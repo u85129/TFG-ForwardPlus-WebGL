@@ -3379,16 +3379,16 @@ Renderer.prototype.createShaders = function()
 			vec3 viewTilePoint4 = vec3(tilePoint4.x / tilePoint4.w, tilePoint4.y / tilePoint4.w, tilePoint4.z / tilePoint4.w);\
 			\
 			vec3 cameraPosition = u_camera_position;\
-			vec3 planeNormal = normalize(cross(viewTilePoint2-cameraPosition, viewTilePoint1-cameraPosition));\
+			vec3 planeNormal = cross(normalize(viewTilePoint1-cameraPosition), normalize(viewTilePoint2-cameraPosition));\
 			float planeDistance = dot(planeNormal, u_camera_position);\
 			vec4 leftPlane = vec4(planeNormal, planeDistance);\
-			planeNormal = normalize(cross(viewTilePoint3-cameraPosition, viewTilePoint4-cameraPosition));\
+			planeNormal = cross(normalize(viewTilePoint4-cameraPosition), normalize(viewTilePoint3-cameraPosition));\
 			planeDistance = dot(planeNormal, u_camera_position);\
 			vec4 rightPlane = vec4(planeNormal, planeDistance);\
-			planeNormal = normalize(cross(viewTilePoint1-cameraPosition, viewTilePoint3-cameraPosition));\
+			planeNormal = cross(normalize(viewTilePoint2-cameraPosition), normalize(viewTilePoint4-cameraPosition));\
 			planeDistance = dot(planeNormal, u_camera_position);\
 			vec4 topPlane = vec4(planeNormal, planeDistance);\
-			planeNormal = normalize(cross(viewTilePoint1-cameraPosition, viewTilePoint3-cameraPosition));\
+			planeNormal = cross(normalize(viewTilePoint3-cameraPosition), normalize(viewTilePoint1-cameraPosition));\
 			planeDistance = dot(planeNormal, u_camera_position);\
 			vec4 bottomPlane = vec4(planeNormal, planeDistance);\
 			\

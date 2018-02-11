@@ -151,19 +151,12 @@ LI.lightCulling = function(camera, render){
     res3 = vec3.fromValues(res3[0]/res3[3], res3[1]/res3[3], res3[2]/res3[3]);
     vec4.transformMat4(res4, pixel4, inv);
     res4 = vec3.fromValues(res4[0]/res4[3], res4[1]/res4[3], res4[2]/res4[3]);
-/*console.log("res1 " +res1);
-console.log("res2 " +res2);
-console.log("res3 " +res3);
-console.log("res4 " +res4);*/
-//console.log("camera "+camera._position);
-    /*var cross = plane = vec3.create();
+    var cross = plane = vec3.create();
     var aux = vec3.fromValues(res2[0] - camera._position[0],res2[1] - camera._position[1], res2[2] - camera._position[2]);
     var aux2= vec3.fromValues(res1[0] - camera._position[0],res1[1] - camera._position[1], res1[2] - camera._position[2]);
     vec3.cross(cross, aux, aux2);
     vec3.normalize(plane, cross);
-    console.log("aux " + aux +" aux2 "+ aux2);
     var distance = vec3.dot(plane, camera._position);
-    console.log("dist "+distance +" plane "+ plane);*/
 
     //console.log("camera " +camera._position);
 
