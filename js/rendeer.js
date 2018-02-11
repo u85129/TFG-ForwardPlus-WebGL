@@ -3299,9 +3299,7 @@ Renderer.prototype.createShaders = function()
    			    }\
    			    vec3 Ispec =  aux2.xyz * textureColor.w * ks * textureColor.xyz;\
    		        float radius = aux2.w;\
-   			    radius *= radius;\
    	            float distanceToLight = length(aux - v_position.xyz);\
-                distanceToLight *= distanceToLight;\
                 float attenuation = clamp(1.0 - (distanceToLight) / (radius), 0.0, 1.0);\
                 finalColor += attenuation*(Idiff + Ispec);\
     		  }\
@@ -3352,62 +3350,69 @@ Renderer.prototype.createShaders = function()
 		void main() {\
 			ivec2 pixelIdx = ivec2(gl_FragCoord.xy);\
 			ivec2 tileIdx = pixelIdx / u_tileSize;\
-			ivec2 pixel0 = pixelIdx / u_tileSize;\
+			ivec2 pixel0 = tileIdx * u_tileSize;\
 			ivec2 diff = pixelIdx - pixel0;\
-			float pixel = float(diff.x + (diff.y * u_tileSize));\
-			vec2 uv = vec2( (float(pixel) + 0.5) / float(u_numLights), 0.5);\
-			vec3 lightPosition = texture2D(u_lights, uv).xyz;\
-			float lightRadius = texture2D(u_lightsRadius, uv).w;\
-			\
-			vec2 fullScreenSize = vec2(u_screenWidth, u_screenHeight);\
-			vec2 ndcTileMin = 2.0 * vec2(pixel0) / fullScreenSize - vec2(1.0);\
-        	vec2 ndcTileMax = 2.0 * vec2(pixel0 + ivec2(u_tileSize)) / fullScreenSize - vec2(1.0);\
-        	ndcTileMin = vec2(-1,-1);\
-        	ndcTileMax = vec2(1,1);\
-			vec4 tilePoint1 = vec4(ndcTileMin.x, ndcTileMin.y, -1.0 ,1.0);\
-			vec4 tilePoint2 = vec4(ndcTileMin.x, ndcTileMax.y, -1.0 ,1.0);\
-			vec4 tilePoint3 = vec4(ndcTileMax.x, ndcTileMin.y, -1.0 ,1.0);\
-			vec4 tilePoint4 = vec4(ndcTileMax.x, ndcTileMax.y, -1.0 ,1.0);\
-			\
-			tilePoint1 = u_invViewProjMatrix * tilePoint1;\
-			vec3 viewTilePoint1 = vec3(tilePoint1.x / tilePoint1.w, tilePoint1.y / tilePoint1.w, tilePoint1.z / tilePoint1.w);\
-			tilePoint2 = u_invViewProjMatrix * tilePoint2;\
-			vec3 viewTilePoint2 = vec3(tilePoint2.x / tilePoint2.w, tilePoint2.y / tilePoint2.w, tilePoint2.z / tilePoint2.w);\
-			tilePoint3 = u_invViewProjMatrix * tilePoint3;\
-			vec3 viewTilePoint3 = vec3(tilePoint3.x / tilePoint3.w, tilePoint3.y / tilePoint3.w, tilePoint3.z / tilePoint3.w);\
-			tilePoint4 = u_invViewProjMatrix * tilePoint4;\
-			vec3 viewTilePoint4 = vec3(tilePoint4.x / tilePoint4.w, tilePoint4.y / tilePoint4.w, tilePoint4.z / tilePoint4.w);\
-			\
-			vec3 cameraPosition = u_camera_position;\
-			vec3 planeNormal = cross(normalize(viewTilePoint1-cameraPosition), normalize(viewTilePoint2-cameraPosition));\
-			float planeDistance = dot(planeNormal, u_camera_position);\
-			vec4 leftPlane = vec4(planeNormal, planeDistance);\
-			planeNormal = cross(normalize(viewTilePoint4-cameraPosition), normalize(viewTilePoint3-cameraPosition));\
-			planeDistance = dot(planeNormal, u_camera_position);\
-			vec4 rightPlane = vec4(planeNormal, planeDistance);\
-			planeNormal = cross(normalize(viewTilePoint2-cameraPosition), normalize(viewTilePoint4-cameraPosition));\
-			planeDistance = dot(planeNormal, u_camera_position);\
-			vec4 topPlane = vec4(planeNormal, planeDistance);\
-			planeNormal = cross(normalize(viewTilePoint3-cameraPosition), normalize(viewTilePoint1-cameraPosition));\
-			planeDistance = dot(planeNormal, u_camera_position);\
-			vec4 bottomPlane = vec4(planeNormal, planeDistance);\
-			\
-			int inside = 1;\
-			if(-lightRadius > dot(leftPlane.xyz, lightPosition) + leftPlane.w)\
-				inside = inside - 1;\
-			if(-lightRadius > dot(rightPlane.xyz, lightPosition) + rightPlane.w)\
-				inside = inside - 1;\
-			if(-lightRadius > dot(topPlane.xyz, lightPosition) + topPlane.w)\
-				inside = inside - 1;\
-			if(-lightRadius > dot(bottomPlane.xyz, lightPosition) + bottomPlane.w)\
-				inside = inside - 1;\
-			if(inside == 1)\
-				gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);\
-			else\
+			int pixel = diff.x + (diff.y * u_tileSize);\
+			if(pixel < u_numLights){\
+				vec2 uv = vec2( (float(pixel) + 0.5) / float(u_numLights), 0.5);\
+				vec3 lightPosition = texture2D(u_lights, uv).xyz;\
+				float lightRadius = texture2D(u_lightsRadius, uv).w;\
+				\
+				vec2 fullScreenSize = vec2(u_screenWidth, u_screenHeight);\
+				vec2 ndcTileMin = 2.0 * vec2(pixel0) / fullScreenSize - vec2(1.0);\
+	        	vec2 ndcTileMax = 2.0 * vec2(pixel0 + ivec2(u_tileSize)) / fullScreenSize - vec2(1.0);\
+	        	ndcTileMin = vec2(-1,-1);\
+	        	ndcTileMax = vec2(1,1);\
+				vec4 tilePoint1 = vec4(ndcTileMin.x, ndcTileMin.y, 1.0 ,1.0);\
+				vec4 tilePoint2 = vec4(ndcTileMin.x, ndcTileMax.y, 1.0 ,1.0);\
+				vec4 tilePoint3 = vec4(ndcTileMax.x, ndcTileMin.y, 1.0 ,1.0);\
+				vec4 tilePoint4 = vec4(ndcTileMax.x, ndcTileMax.y, 1.0 ,1.0);\
+				\
+				tilePoint1 = u_invViewProjMatrix * tilePoint1;\
+				vec3 viewTilePoint1 = vec3(tilePoint1.x / tilePoint1.w, tilePoint1.y / tilePoint1.w, tilePoint1.z / tilePoint1.w);\
+				tilePoint2 = u_invViewProjMatrix * tilePoint2;\
+				vec3 viewTilePoint2 = vec3(tilePoint2.x / tilePoint2.w, tilePoint2.y / tilePoint2.w, tilePoint2.z / tilePoint2.w);\
+				tilePoint3 = u_invViewProjMatrix * tilePoint3;\
+				vec3 viewTilePoint3 = vec3(tilePoint3.x / tilePoint3.w, tilePoint3.y / tilePoint3.w, tilePoint3.z / tilePoint3.w);\
+				tilePoint4 = u_invViewProjMatrix * tilePoint4;\
+				vec3 viewTilePoint4 = vec3(tilePoint4.x / tilePoint4.w, tilePoint4.y / tilePoint4.w, tilePoint4.z / tilePoint4.w);\
+				\
+				vec3 cameraPosition = u_camera_position;\
+				vec3 planeNormal = cross(normalize(viewTilePoint1-cameraPosition), normalize(viewTilePoint2-cameraPosition));\
+				float planeDistance = dot(planeNormal, u_camera_position);\
+				vec4 leftPlane = vec4(planeNormal, planeDistance);\
+				planeNormal = cross(normalize(viewTilePoint4-cameraPosition), normalize(viewTilePoint3-cameraPosition));\
+				planeDistance = dot(planeNormal, u_camera_position);\
+				vec4 rightPlane = vec4(planeNormal, planeDistance);\
+				planeNormal = cross(normalize(viewTilePoint2-cameraPosition), normalize(viewTilePoint4-cameraPosition));\
+				planeDistance = dot(planeNormal, u_camera_position);\
+				vec4 topPlane = vec4(planeNormal, planeDistance);\
+				planeNormal = cross(normalize(viewTilePoint3-cameraPosition), normalize(viewTilePoint1-cameraPosition));\
+				planeDistance = dot(planeNormal, u_camera_position);\
+				vec4 bottomPlane = vec4(planeNormal, planeDistance);\
+				\
+				int inside = 1;\
+				if(-lightRadius > dot(leftPlane.xyz, lightPosition) + leftPlane.w)\
+					inside = inside - 1;\
+				if(-lightRadius > dot(rightPlane.xyz, lightPosition) + rightPlane.w)\
+					inside = inside - 1;\
+				if(-lightRadius > dot(topPlane.xyz, lightPosition) + topPlane.w)\
+					inside = inside - 1;\
+				if(-lightRadius > dot(bottomPlane.xyz, lightPosition) + bottomPlane.w)\
+					inside = inside - 1;\
+				if(inside == 1){\
+					gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);\
+				}\
+				else{\
+					gl_FragColor = vec4(0.0, 0.0, 1.0, 1.0);\
+				}\
+			}\
+			else{\
 				gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);\
+			}\
 		}\
 	');
-	gl.shaders["light_culling"] = this._light_culling;	
+	gl.shaders["light_culling"] = this._light_culling;
 
 	this._forward_plus = new GL.Shader('\
 		precision highp float;\

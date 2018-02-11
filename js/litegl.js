@@ -10811,7 +10811,6 @@ Mesh.parseOBJ = function(text, options)
 	if(groups.length > 1)
 		info.groups = groups;
 	mesh.info = info;
-
 	var final_mesh = null;
 	
 	final_mesh = Mesh.load(mesh, null, options.mesh);

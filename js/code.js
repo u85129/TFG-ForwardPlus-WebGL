@@ -4,7 +4,7 @@ var moveup = movedown = moveleft = moveright = debuglight = false;
 var speed = 200;
 var multiplier = 1;
 var fps = mediaFps = totalCounts = sumFrames = 0;
-var mode = 1;
+var mode = 2;
 
 function init()
 {
@@ -18,7 +18,7 @@ function init()
 
 	//create lights
 	var lights = LI;
-	lights.init(32, 1, 1000);
+	lights.init(16, 1, 400);
 
 	//get shaders for text file	
 	renderer.loadShaders("shaders.txt");
