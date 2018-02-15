@@ -1786,6 +1786,15 @@ Renderer.prototype.renderNode = function(node, camera)
 	if (!shader)
 		shader = node.textures.color ? this._texture_shader : this._flat_shader;
 	
+	//ADDED BY DANI
+	if(mode == 1)
+		shader_name = "forward_plus";
+	else if(mode == 3)
+		shader_name = "new_textured_phong";
+	shader = gl.shaders[shader_name];
+	//FIN ADDED BY DANI
+
+
 	//get texture
 	var slot = 0;
 	var texture = null;
@@ -1848,19 +1857,17 @@ Renderer.prototype.renderNode = function(node, camera)
 
     slot++;
     gl.activeTexture(gl.TEXTURE0 + slot);
-    gl.bindTexture(gl.TEXTURE_2D, LI.tileTexture);
-    node._uniforms.u_tileGrid = slot;
-
-    slot++;
-    gl.activeTexture(gl.TEXTURE0 + slot);
-    gl.bindTexture(gl.TEXTURE_2D, LI.tileLightIdTexture);
-    node._uniforms.u_tileLightIdTexture = slot;
+    gl.bindTexture(gl.TEXTURE_2D, LI.lightCulled);
+    node._uniforms.u_lightCulled = slot;
 
     node._uniforms.u_mvp = camera._mvp_matrix;
 	node._uniforms.u_model = node._global_matrix;
 	node._uniforms.u_eye = camera.position; 
 	node._uniforms.u_numLights = LI.NUM_LIGHTS;
 	node._uniforms.u_ambient = vec3.fromValues(0.1,0.1,0.1);
+	node._uniforms.u_tileSize = LI.TILE_SIZE;
+	node._uniforms.u_screenWidth = window.innerWidth;
+	node._uniforms.u_screenHeight = window.innerHeight;
 	//END ADDED DANI
 
 	shader.uniforms( this._uniforms ); //globals
@@ -1869,11 +1876,22 @@ Renderer.prototype.renderNode = function(node, camera)
 	if(node.onShaderUniforms) //in case the node wants to add extra shader uniforms that need to be computed at render time
 		node.onShaderUniforms(this, shader);
 
+	//ADDED BY DANI
+		/*if(mesh.info.groups.length > 0){
+			for (var i = 0; i < mesh.info.groups.length; i++) {
+				shader.drawRange( mesh, node.primitive === undefined ? gl.TRIANGLES : node.primitive, mesh.info.groups[i].start, mesh.info.groups[i].start + mesh.info.groups[i].length , node.indices );
+			}
+		}else{
+			if(node.draw_range)
+				shader.drawRange( mesh, node.primitive === undefined ? gl.TRIANGLES : node.primitive, node.draw_range[0], node.draw_range[1] , node.indices );
+			else
+				shader.draw( mesh, node.primitive === undefined ? gl.TRIANGLES : node.primitive, node.indices );
+		}*/
+	//FIN ADDED BY DANI
 	if(node.draw_range)
 		shader.drawRange( mesh, node.primitive === undefined ? gl.TRIANGLES : node.primitive, node.draw_range[0], node.draw_range[1] , node.indices );
 	else
 		shader.draw( mesh, node.primitive === undefined ? gl.TRIANGLES : node.primitive, node.indices );
-
 
 	if(!this.ignore_flags)
 	{
@@ -3293,7 +3311,7 @@ Renderer.prototype.createShaders = function()
                 if(kd > 0.0){\
    		          vec3 V = normalize(u_eye - v_position.xyz);\
                   vec3 vectorIncidente = normalize(v_position.xyz - aux);\
-	    		  vec3 vectorReflejado = normalize(reflect(-surfaceToLight,N));\
+	    		  vec3 vectorReflejado = normalize(reflect(surfaceToLight,N));\
 				  float cosAngle = clamp(dot(vectorReflejado, V), 0.0, 1.0);\
 	    		  ks = pow(cosAngle, 1.0);\
    			    }\
@@ -3422,7 +3440,7 @@ Renderer.prototype.createShaders = function()
 					gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);\
 				}\
 				else{\
-					gl_FragColor = vec4(0.0, 0.0, 1.0, 1.0);\
+					gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);\
 				}\
 			}\
 			else{\
@@ -3455,53 +3473,56 @@ Renderer.prototype.createShaders = function()
 		varying vec4 v_position;\
 		uniform int u_numLights;\
 		uniform vec3 u_eye;\
+		uniform int u_tileSize;\
+		uniform int u_screenWidth;\
+		uniform int u_screenHeight;\
 		uniform sampler2D u_lightPositionTexture;\
 		uniform sampler2D u_lightColorTexture;\
-		uniform int u_numTileHorizontal;\
-		uniform int u_tileSize;\
-		uniform vec3 u_ambient;\
+		uniform sampler2D u_lightCulled;\
 		uniform sampler2D u_color_texture;\
+		\
+		uniform vec3 u_ambient;\
 		uniform int u_totalTiles;\
-		uniform sampler2D u_tileGrid;\
-		uniform sampler2D u_tileLightIdTexture;\
 		uniform int u_totalLightIndexes;\
 		void main() {\
+			int targetLight = -1;\
 			ivec2 pixelIdx = ivec2(gl_FragCoord.xy);\
-			pixelIdx = pixelIdx / u_tileSize;\
-			float tileId = float(pixelIdx.x + (pixelIdx.y * u_numTileHorizontal));\
-			vec2 uv = vec2( (tileId + 0.5) / float(u_totalTiles), 0.5);\
-			vec3 tileData = texture2D(u_tileGrid, uv).xyz;\
-			float totalTileLights = tileData.y;\
-			float lightIdxOffset = tileData.x;\
-			float end = lightIdxOffset + totalTileLights;\
-			vec4 textureColor = texture2D(u_color_texture, v_coord);\
-			vec3 N = normalize(v_normal);\
+			ivec2 tileIdx = pixelIdx / u_tileSize;\
+			ivec2 pixel0 = tileIdx * u_tileSize;\
 			vec3 finalColor;\
+			vec4 textureColor = texture2D(u_color_texture, v_coord);\
 			vec3 Iamb = u_ambient * textureColor.xyz;\
-			for(float i = 0.0; i < 256.0; i++){\
-				if(i >= totalTileLights) break;\
-				vec2 uv2 = vec2( float(i + lightIdxOffset + 0.5) / float(u_totalLightIndexes), 0.5);\
-				vec3 lightIdx = texture2D(u_tileLightIdTexture, uv2).xyz;\
-				vec2 lightUV = vec2( (float(lightIdx.x) + 0.5 ) / float(u_numLights) , 0.5);\
-				\
-        		vec3 aux = texture2D(u_lightPositionTexture, lightUV).xyz;\
-        		vec4 aux2 = texture2D(u_lightColorTexture, lightUV);\
-            	vec3 surfaceToLight = normalize(aux - v_position.xyz);\
-            	float kd = clamp(dot(N, surfaceToLight), 0.0, 1.0);\
-            	vec3 Idiff = aux2.xyz * kd * textureColor.xyz;\
-            	float ks = 0.0;\
-                if(kd > 0.0){\
-   		          vec3 V = normalize(u_eye - v_position.xyz);\
-                  vec3 vectorIncidente = normalize(v_position.xyz - aux);\
-	    		  vec3 vectorReflejado = normalize(reflect(-surfaceToLight,N));\
-				  float cosAngle = clamp(dot(vectorReflejado, V), 0.0, 1.0);\
-	    		  ks = pow(cosAngle, 1.0);\
-   			    }\
-   			    vec3 Ispec =  aux2.xyz * textureColor.w * ks * textureColor.xyz;\
-   		        float radius = aux2.w;\
-   	            float distanceToLight = length(aux - v_position.xyz);\
-                float attenuation = clamp(1.0 - (distanceToLight) / (radius), 0.0, 1.0);\
-                	finalColor += attenuation*(Idiff + Ispec);\
+			for(int i = 0; i < 16; i++){\
+				for(int j = 0; j < 16; j++){\
+					targetLight = i * u_tileSize + j;\
+					if(targetLight >= u_numLights)\
+						break;\
+					ivec2 tl = pixel0 + ivec2(j, i);\
+					vec2 uv = (vec2(tl) + vec2(0.5, 0.5)) / vec2(u_screenWidth, u_screenHeight);\
+            		vec4 candidate = texture2D(u_lightCulled, uv);\
+            		if(candidate.x == 1.0){\
+            			vec2 lightUV = vec2( (float(targetLight) + 0.5 ) / float(u_numLights) , 0.5);\
+            			vec3 aux = texture2D(u_lightPositionTexture, lightUV).xyz;\
+        				vec4 aux2 = texture2D(u_lightColorTexture, lightUV);\
+        				vec3 surfaceToLight = normalize(aux - v_position.xyz);\
+        				vec3 N = normalize(v_normal);\
+        				float kd = clamp(dot(N, surfaceToLight), 0.0, 1.0);\
+		            	vec3 Idiff = aux2.xyz * kd * textureColor.xyz;\
+		            	float ks = 0.0;\
+		                if(kd > 0.0){\
+		   		          vec3 V = normalize(u_eye - v_position.xyz);\
+		                  vec3 vectorIncidente = normalize(v_position.xyz - aux);\
+			    		  vec3 vectorReflejado = normalize(reflect(surfaceToLight,N));\
+						  float cosAngle = clamp(dot(vectorReflejado, V), 0.0, 1.0);\
+			    		  ks = pow(cosAngle, 1.0);\
+		   			    }\
+		   			    vec3 Ispec =  aux2.xyz * textureColor.w * ks * textureColor.xyz;\
+		   		        float radius = aux2.w;\
+		   	            float distanceToLight = length(aux - v_position.xyz);\
+		                float attenuation = clamp(1.0 - (distanceToLight) / (radius), 0.0, 1.0);\
+		                	finalColor += attenuation*(Idiff + Ispec);\
+        			}\
+				}\
 			}\
 			finalColor = finalColor + Iamb;\
 			gl_FragColor = vec4(finalColor, 1.0);\
@@ -3509,6 +3530,82 @@ Renderer.prototype.createShaders = function()
 		');
 	gl.shaders["forward_plus"] = this._forward_plus;
 }
+
+/*			precision highp float;\
+		attribute vec3 a_vertex;\
+		attribute vec3 a_normal;\
+		attribute vec2 a_coord;\
+		varying vec2 v_coord;\
+		varying vec3 v_normal;\
+		varying vec4 v_position;\
+		uniform mat4 u_mvp;\
+		uniform mat4 u_model;\
+		void main() {\n\
+			v_coord = a_coord;\n\
+			v_position = u_model * vec4(a_vertex,1);\
+			v_normal = (u_model * vec4(a_normal,0.0)).xyz;\n\
+			gl_Position = u_mvp * vec4(a_vertex,1.0);\n\
+		}\
+		','\
+		precision highp float;\
+		varying vec2 v_coord;\
+		varying vec3 v_normal;\
+		varying vec4 v_position;\
+		uniform int u_numLights;\
+		uniform vec3 u_eye;\
+		uniform int u_tileSize;\
+		uniform int u_screenWidth;\
+		uniform int u_screenHeight;\
+		uniform sampler2D u_lightPositionTexture;\
+		uniform sampler2D u_lightColorTexture;\
+		uniform sampler2D u_lightCulled;\
+		uniform sampler2D u_color_texture;\
+		\
+		uniform vec3 u_ambient;\
+		uniform int u_totalTiles;\
+		uniform int u_totalLightIndexes;\
+		void main() {\
+			int targetLight = -1;\
+			ivec2 pixelIdx = ivec2(gl_FragCoord.xy);\
+			ivec2 tileIdx = pixelIdx / u_tileSize;\
+			ivec2 pixel0 = tileIdx * u_tileSize;\
+			vec3 finalColor;\
+			vec4 textureColor = texture2D(u_color_texture, v_coord);\
+			vec3 Iamb = u_ambient * textureColor.xyz;\
+			for(int i = 0; i < 16; i++){\
+				for(int j = 0; j < 16; j++){\
+					targetLight = i * u_tileSize + j;\
+					if(targetLight >= u_numLights)\
+						break;\
+					ivec2 tl = pixel0 + ivec2(i, j);\
+					vec2 uv = (vec2(tl) + vec2(0.5, 0.5)) / vec2(u_screenWidth, u_screenHeight);\
+            		vec4 candidate = texture2D(u_lightCulled, uv);\
+            		if(candidate.x == 1.0){\
+            			vec2 lightUV = vec2( (float(targetLight) + 0.5 ) / float(u_numLights) , 0.5);\
+            			vec3 aux = texture2D(u_lightPositionTexture, lightUV).xyz;\
+        				vec4 aux2 = texture2D(u_lightColorTexture, lightUV);\
+        				vec3 surfaceToLight = normalize(aux - v_position.xyz);\
+        				vec3 N = normalize(v_normal);\
+        				float kd = clamp(dot(N, surfaceToLight), 0.0, 1.0);\
+		            	vec3 Idiff = aux2.xyz * kd * textureColor.xyz;\
+		            	float ks = 0.0;\
+		                if(kd > 0.0){\
+		   		          vec3 V = normalize(u_eye - v_position.xyz);\
+		                  vec3 vectorIncidente = normalize(v_position.xyz - aux);\
+			    		  vec3 vectorReflejado = normalize(reflect(-surfaceToLight,N));\
+						  float cosAngle = clamp(dot(vectorReflejado, V), 0.0, 1.0);\
+			    		  ks = pow(cosAngle, 1.0);\
+		   			    }\
+		   			    vec3 Ispec =  aux2.xyz * textureColor.w * ks * textureColor.xyz;\
+		   		        float radius = aux2.w;\
+		   	            float distanceToLight = length(aux - v_position.xyz);\
+		                float attenuation = clamp(1.0 - (distanceToLight) / (radius), 0.0, 1.0);\
+		                	finalColor += attenuation*(Idiff + Ispec);\
+        			}\
+				}\
+			}\
+			finalColor = finalColor + Iamb;\
+			gl_FragColor = vec4(finalColor, 1.0);\*/
 
 /**
 * Billboard class to hold an scene item, used for camera aligned objects

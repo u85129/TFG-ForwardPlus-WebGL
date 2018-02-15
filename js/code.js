@@ -18,7 +18,7 @@ function init()
 
 	//create lights
 	var lights = LI;
-	lights.init(16, 1, 400);
+	lights.init(16, 100, 400);
 
 	//get shaders for text file	
 	renderer.loadShaders("shaders.txt");
@@ -51,7 +51,7 @@ function init()
 		scaling: [1,1,1],
 		color: [1,1,1,1],
 		mesh: "sponza",
-		shader: "new_textured_phong",
+		shader: "forward_plus",
 		texture: "lee_specular",
 		uniforms: {
 		}
@@ -93,7 +93,7 @@ function init()
 		        scene.update(dt);
 		        break;
 		}
-		//lights.update(dt);
+		lights.update(dt);
 		manageControls(dt, camera);
 	}
 	
@@ -138,12 +138,15 @@ function init()
 		}
 		if(e.keyCode == 49){ // FORWARD+
 			mode = 1;
+			sumFrames = totalCounts = 0;
 		}
 		if(e.keyCode == 50){ // TILE DEBUG
 			mode = 2;
+			sumFrames = totalCounts = 0;
 		}
 		if(e.keyCode == 51){ // FORWARD
 			mode = 3;
+			sumFrames = totalCounts = 0;
 		}
 		/*if(e.keyCode == 73){ //I
 			lights.addLight();

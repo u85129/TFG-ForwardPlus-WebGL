@@ -11,7 +11,7 @@ var lightPosMax = [1250, 800, 600];
 /*var lightPosMin = [-14, -0.5, -6];
 var lightPosMax = [14, 18, 6];*/
 
-var lightVelY = -20;
+var lightVelY = -50;
 var LIGHT_RADIUS = 4;
 var NUM_LIGHTS = LI.NUM_LIGHTS;
 var TILE_SIZE = LI.TILE_SIZE;
@@ -82,17 +82,16 @@ LI.init = function (numTiles, numLights, lightRadius) {
     gl.bindTexture(gl.TEXTURE_2D, null);
 
     var lightCulled = LI.lightCulled = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, lightCulled);
+    gl.bindTexture(gl.TEXTURE_2D, LI.lightCulled);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, window.innerWidth, window.innerHeight, 0, gl.RGBA, gl.FLOAT, new Float32Array(window.innerWidth * window.innerHeight * 4));
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.bindTexture(gl.TEXTURE_2D, null);
 
     var lightCulledFrameBuffer = LI.lightCulledFrameBuffer = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, LI.lightCulledFrameBuffer);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, lightCulled, 0);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, LI.lightCulled, 0);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
     quadPositionBuffer = gl.createBuffer();
@@ -147,6 +146,10 @@ LI.lightCulling = function(camera, render){
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, LI.colorTexture);
 
+    gl.activeTexture(gl.TEXTURE2);
+    gl.bindTexture(gl.TEXTURE_2D, LI.lightCulled);
+    
+
 
     var inv1 = inv2 = mat4.create();
     mat4.invert(inv1, camera._projection_matrix);
@@ -159,6 +162,7 @@ LI.lightCulling = function(camera, render){
         u_invViewProjMatrix : inv,
         u_lights : 0,
         u_lightsRadius : 1,
+        u_lightCulled : 2,
         u_camera_position : camera._position,
         u_projectionMatrix : inv1,
         u_viewMatrix : inv2

@@ -3498,6 +3498,9 @@ Mesh.mergeMeshes = function( meshes, options )
 //Here we store all basic mesh parsers (OBJ, STL) and encoders
 Mesh.parsers = {};
 Mesh.encoders = {};
+//ADDED BY DANI
+Mesh.materials = {}; //Store materials of a mesh, from file MTL
+//FIN ADDED BY DANI
 
 /**
 * Returns am empty mesh and loads a mesh and parses it using the Mesh.parsers, by default only OBJ is supported
@@ -10811,12 +10814,121 @@ Mesh.parseOBJ = function(text, options)
 	if(groups.length > 1)
 		info.groups = groups;
 	mesh.info = info;
+
+	//ADDED DANI
+	if(mtllib){
+		HttpRequest( "data/"+mtllib, null, function(text) {
+			var materials = parseMTL( text, null);
+			var final_mesh = null;
+
+			final_mesh = Mesh.load(mesh, null, options.mesh);
+			final_mesh.materials = materials;
+			final_mesh.updateBounding();
+			return final_mesh;
+		}, function(err){
+			
+		},null);
+	}else{
+		var final_mesh = null;
+	
+		final_mesh = Mesh.load(mesh, null, options.mesh);
+		final_mesh.updateBounding();
+		return final_mesh;
+	}
+	//FIN ADDED DANI
 	var final_mesh = null;
 	
-	final_mesh = Mesh.load(mesh, null, options.mesh);
-	final_mesh.updateBounding();
-	return final_mesh;
+		final_mesh = Mesh.load(mesh, null, options.mesh);
+		final_mesh.updateBounding();
+		return final_mesh;
 }
+
+var parseMTL= function( text, options ){
+	var lines = text.split("\n");
+	var length = lines.length;
+
+	var materials = {};
+	var current_material = null;
+
+	for (var lineIndex = 0;  lineIndex < length; ++lineIndex)
+	{
+		var line = lines[lineIndex].replace(/[ \t]+/g, " ").replace(/\s\s*$/, ""); //trim
+		line = line.trim();
+
+		if (line[0] == "#" || line == "")
+			continue;
+
+		var tokens = line.split(" ");
+		var c = tokens[0];
+
+		switch(c)
+		{
+			case "newmtl":
+				var filename = tokens[1] + ".json";
+				current_material = { filename: filename, textures: {} };
+				materials[ filename ] = current_material;
+				break;
+			case "Ka":
+				current_material.ambient = readVector3(tokens);
+				break;
+			case "Kd":
+				current_material.color = readVector3(tokens);
+				break;
+			case "Ks":
+				current_material.specular_factor = parseFloat(tokens[1]); //readVector3(tokens);
+				break;
+			case "Ke":
+				current_material.emissive = readVector3(tokens); //readVector3(tokens);
+				break;
+			case "Ns": //glossiness
+				current_material.specular_gloss = parseFloat(tokens[1]);
+				break;
+			case "Tr": //reflection coefficient
+				current_material.reflection = parseFloat( tokens[1] );
+				break;
+			case "map_Kd":
+				current_material.textures["color"] = tokens[1];
+				current_material.color = [1,1,1];
+				break;
+			case "map_Ka":
+				current_material.textures["ambient"] = tokens[1];
+				current_material.ambient = [1,1,1];
+				break;
+			case "map_Ks":
+				current_material.textures["specular"] = tokens[1];
+				current_material.specular_factor = 1;
+				break;
+			case "map_d":
+				current_material.textures["opacity"] = tokens[1];
+				break;
+			case "bump":
+			case "map_bump":
+				current_material.textures["bump"] = tokens[1];
+				break;
+			case "d": //disolve is like transparency
+				current_material.opacity = parseFloat( tokens[1] );
+				break;
+			case "Tr": //reflection coefficient
+				current_material.opacity = parseFloat( tokens[1] );
+				break;
+			//Not supported stuff
+			case "illum": //illumination model (raytrace related)
+			case "Tf": //reflection by components
+			case "Ni": //refraction coefficient
+				break;
+			default:
+				console.log("Unknown MTL info: ", c);
+				break;
+		}
+	}
+	return materials;
+
+	function readVector3(v)
+	{
+		return [ parseFloat(v[1]), parseFloat(v[2]), parseFloat(v[3]) ];
+	}
+};
+
 
 Mesh.parsers["obj"] = Mesh.parseOBJ.bind( Mesh );
 
