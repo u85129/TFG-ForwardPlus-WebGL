@@ -5,8 +5,8 @@ var LI = global.LI;
 var lightPos = LI.lightPos;
 
 // for sponza
-var lightPosMin = [-1250, 0, -600];
-var lightPosMax = [1250, 800, 600];
+var lightPosMin = [-1875, 0, -900];
+var lightPosMax = [1875, 1200, 900];
 
 /*var lightPosMin = [-14, -0.5, -6];
 var lightPosMax = [14, 18, 6];*/
@@ -102,11 +102,20 @@ LI.init = function (numTiles, numLights, lightRadius) {
 
 LI.update = function (dt) {
     var b;
+    var vector = resul = vec3.create();
     for (var i = 0; i < NUM_LIGHTS; i++) {
 
         var mn = lightPosMin[1];
         var mx = lightPosMax[1];
         LI.position[(i * 3) + 1] = (LI.position[(i * 3) + 1] + (lightVelY * dt));
+        
+        vector = vec3.fromValues(LI.position[i*3], LI.position[i*3 + 1], LI.position[i*3 + 2]);
+        vec3.rotateY(resul, vector,0.5*dt);
+
+        LI.position[(i * 3)] = resul[0];
+        LI.position[(i * 3) + 1] = resul[1];
+        LI.position[(i * 3) + 2] = resul[2];
+
         if(LI.position[(i * 3) + 1] < mn)
             LI.position[(i * 3) + 1] = mx;
     }

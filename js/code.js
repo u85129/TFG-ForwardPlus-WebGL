@@ -18,7 +18,7 @@ function init()
 
 	//create lights
 	var lights = LI;
-	lights.init(16, 100, 400);
+	lights.init(32, 256, 150);
 
 	//get shaders for text file	
 	renderer.loadShaders("shaders.txt");
