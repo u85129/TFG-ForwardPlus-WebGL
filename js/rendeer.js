@@ -1876,21 +1876,37 @@ Renderer.prototype.renderNode = function(node, camera)
 	if(node.onShaderUniforms) //in case the node wants to add extra shader uniforms that need to be computed at render time
 		node.onShaderUniforms(this, shader);
 	//ADDED BY DANI
-		/*if(mesh.info.groups.length > 0){ //382
+	if(mesh.info.groups != undefined){
+		//console.log(mesh.materials);
+		if (mesh.info.groups.length > 0) {
 			for (var i = 0; i < mesh.info.groups.length; i++) {
-				shader.drawRange( mesh, node.primitive === undefined ? gl.TRIANGLES : node.primitive, mesh.info.groups[i].start, mesh.info.groups[i].start + mesh.info.groups[i].length , node.indices );
+				var material = mesh.materials[mesh.info.groups[i].material+".json"];
+				node._uniforms.u_ambient = vec3.fromValues(material.ambient[0]*.1,material.ambient[1]*.1,material.ambient[2]*.1);
+				node._uniforms.u_diffuse = vec3.fromValues(material.color[0],material.color[1],material.color[2]);
+				if(material.textures.color != undefined){
+					var path = material.textures.color.replace("\\", "/");
+					var texture = null;
+					texture = gl.textures[ path ];
+					if(!texture)
+					{
+						if(this.autoload_assets && path.indexOf(".") != -1)
+							this.loadTexture( path, this.default_texture_settings );
+						texture = gl.textures[ "white" ];
+					}
+
+					node._uniforms["u_color_texture"] = texture.bind( node._uniforms["u_color_texture"] );
+
+					shader.drawRange( mesh, node.primitive === undefined ? gl.TRIANGLES : node.primitive, mesh.info.groups[i].start, mesh.info.groups[i].length , node.indices );
+				}
 			}
-		}else{
-			if(node.draw_range)
-				shader.drawRange( mesh, node.primitive === undefined ? gl.TRIANGLES : node.primitive, node.draw_range[0], node.draw_range[1] , node.indices );
-			else
-				shader.draw( mesh, node.primitive === undefined ? gl.TRIANGLES : node.primitive, node.indices );
-		}*/
+		}
+	}else{
+		if(node.draw_range)
+			shader.drawRange( mesh, node.primitive === undefined ? gl.TRIANGLES : node.primitive, node.draw_range[0], node.draw_range[1] , node.indices );
+		else
+			shader.draw( mesh, node.primitive === undefined ? gl.TRIANGLES : node.primitive, node.indices );
+	}
 	//FIN ADDED BY DANI
-	if(node.draw_range)
-		shader.drawRange( mesh, node.primitive === undefined ? gl.TRIANGLES : node.primitive, node.draw_range[0], node.draw_range[1] , node.indices );
-	else
-		shader.draw( mesh, node.primitive === undefined ? gl.TRIANGLES : node.primitive, node.indices );
 
 	if(!this.ignore_flags)
 	{
@@ -3289,6 +3305,7 @@ Renderer.prototype.createShaders = function()
 			uniform vec3 u_eye;\
 			uniform sampler2D u_color_texture;\
 			uniform vec3 u_ambient;\
+			uniform vec3 u_diffuse;\
 			uniform sampler2D u_lightPositionTexture;\
 			uniform sampler2D u_lightColorTexture;\
 			uniform int u_numLights;\
@@ -3318,7 +3335,7 @@ Renderer.prototype.createShaders = function()
    		        float radius = aux2.w;\
    	            float distanceToLight = length(aux - v_position.xyz);\
                 float attenuation = clamp(1.0 - (distanceToLight) / (radius), 0.0, 1.0);\
-                finalColor += attenuation*(Idiff + Ispec);\
+                finalColor += attenuation*((Idiff * u_diffuse) + Ispec);\
     		  }\
     		  finalColor = finalColor + Iamb;\
 			  gl_FragColor = vec4(finalColor,1.0);\
@@ -3481,6 +3498,7 @@ Renderer.prototype.createShaders = function()
 		uniform sampler2D u_color_texture;\
 		\
 		uniform vec3 u_ambient;\
+		uniform vec3 u_diffuse;\
 		uniform int u_totalTiles;\
 		uniform int u_totalLightIndexes;\
 		void main() {\
@@ -3519,7 +3537,7 @@ Renderer.prototype.createShaders = function()
 		   		        float radius = aux2.w;\
 		   	            float distanceToLight = length(aux - v_position.xyz);\
 		                float attenuation = clamp(1.0 - (distanceToLight) / (radius), 0.0, 1.0);\
-		                	finalColor += attenuation*(Idiff + Ispec);\
+		                	finalColor += attenuation*((Idiff * u_diffuse) + Ispec);\
         			}\
 				}\
 			}\

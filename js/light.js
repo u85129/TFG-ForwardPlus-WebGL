@@ -59,7 +59,7 @@ LI.init = function (numTiles, numLights, lightRadius) {
         LI.colorRadius[i] = Math.random();
         LI.colorRadius[i + 1] = Math.random();
         LI.colorRadius[i + 2] = Math.random();
-        LI.colorRadius[i + 3] = LIGHT_RADIUS;
+        LI.colorRadius[i + 3] = Math.random() * LIGHT_RADIUS;
     }
 
     buffer = gl.createBuffer();
@@ -110,7 +110,7 @@ LI.update = function (dt) {
         LI.position[(i * 3) + 1] = (LI.position[(i * 3) + 1] + (lightVelY * dt));
         
         vector = vec3.fromValues(LI.position[i*3], LI.position[i*3 + 1], LI.position[i*3 + 2]);
-        vec3.rotateY(resul, vector,0.5*dt);
+        vec3.rotateY(resul, vector,0.25*dt);
 
         LI.position[(i * 3)] = resul[0];
         LI.position[(i * 3) + 1] = resul[1];

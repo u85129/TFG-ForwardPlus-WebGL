@@ -18,7 +18,7 @@ function init()
 
 	//create lights
 	var lights = LI;
-	lights.init(32, 256, 150);
+	lights.init(32, 200, 350);
 
 	//get shaders for text file	
 	renderer.loadShaders("shaders.txt");
@@ -27,7 +27,7 @@ function init()
 	renderer.setDataFolder("data");
 
 	//create mesh
-	renderer.loadMesh("lee.obj", "lee", null);
+	//renderer.loadMesh("lee.obj", "lee", null);
 	renderer.loadMesh("sponza.obj", "sponza", null);
 
 	//create texture
