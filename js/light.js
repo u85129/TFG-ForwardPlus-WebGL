@@ -39,6 +39,9 @@ LI.init = function (numTiles, numLights, lightRadius) {
     TILE_SIZE = LI.TILE_SIZE = numTiles;
     LIGHT_RADIUS = lightRadius;
 
+    if(numLights > numTiles * numTiles)
+        NUM_LIGHTS = LI.NUM_LIGHTS = numTiles * numTiles;
+
     lightPosition = LI.position = new Float32Array(NUM_LIGHTS * 3);
     lightColorRadius = LI.colorRadius = new Float32Array(NUM_LIGHTS * 4)
 
@@ -59,7 +62,7 @@ LI.init = function (numTiles, numLights, lightRadius) {
         LI.colorRadius[i] = Math.random();
         LI.colorRadius[i + 1] = Math.random();
         LI.colorRadius[i + 2] = Math.random();
-        LI.colorRadius[i + 3] = Math.random() * LIGHT_RADIUS;
+        LI.colorRadius[i + 3] = LIGHT_RADIUS;
     }
 
     buffer = gl.createBuffer();
@@ -192,6 +195,42 @@ LI.lightCulling = function(camera, render){
 
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
+}
+
+LI.lightCullingHeatMap = function(camera){
+    var shader = gl.shaders["light_culling_heat_map_"+LI.TILE_SIZE];
+    var inv = mat4.create();
+    mat4.invert(inv, camera._viewprojection_matrix);
+    
+    gl.useProgram(shader.program);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, LI.lightCulled);
+
+    var inv1 = inv2 = mat4.create();
+    mat4.invert(inv1, camera._projection_matrix);
+    mat4.invert(inv2, camera._view_matrix);
+    shader.uniforms({
+        u_numLights : LI.NUM_LIGHTS,
+        u_tileSize : LI.TILE_SIZE,
+        u_screenWidth : window.innerWidth,
+        u_screenHeight : window.innerHeight,
+        u_invViewProjMatrix : inv,
+        u_lightCulled : 0,
+        u_camera_position : camera._position,
+        u_projectionMatrix : inv1,
+        u_viewMatrix : inv2
+    });
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, quadPositionBuffer);
+
+    gl.enableVertexAttribArray(gl.getAttribLocation(shader.program, 'a_vertex'));
+    gl.vertexAttribPointer(gl.getAttribLocation(shader.program, 'a_vertex'), 2, gl.FLOAT, false, 0, 0);
+
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
 }
 
 

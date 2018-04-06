@@ -92,8 +92,8 @@ newmtl bricks
 	Ke 0.0000 0.0000 0.0000
 	map_Ka textures\spnza_bricks_a_diff.jpg
 	map_Kd textures\spnza_bricks_a_diff.jpg
-	map_bump textures\spnza_bricks_a_diff.jpg
-	bump textures\spnza_bricks_a_diff.jpg
+	map_bump textures\spnza_bricks_a_ddn.jpg
+	bump textures\spnza_bricks_a_ddn.jpg
 
 newmtl arch
 	Ns 10.0000

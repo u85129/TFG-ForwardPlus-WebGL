@@ -5,6 +5,7 @@ var speed = 200;
 var multiplier = 1;
 var fps = mediaFps = totalCounts = sumFrames = 0;
 var mode = 1;
+var speedLightModifier = 1;
 
 function init()
 {
@@ -18,10 +19,10 @@ function init()
 
 	//create lights
 	var lights = LI;
-	lights.init(32, 200, 350);
+	lights.init(16, 100, 350);
 
 	//get shaders for text file	
-	renderer.loadShaders("shaders.txt");
+	//renderer.loadShaders("shaders.txt");
 
 	//folder where stuff will be loaded	
 	renderer.setDataFolder("data");
@@ -31,7 +32,7 @@ function init()
 	renderer.loadMesh("sponza.obj", "sponza", null);
 
 	//create texture
-	renderer.loadTexture("textures/spnza_bricks_a_diff.jpg", {temp_color:[80,120,40,255], minFilter: gl.LINEAR_MIPMAP_LINEAR, name: "lee_specular"}, null);
+	//renderer.loadTexture("textures/spnza_bricks_a_diff.jpg", {temp_color:[80,120,40,255], minFilter: gl.LINEAR_MIPMAP_LINEAR, name: "lee_specular"}, null);
 	
 	//create camera
 	var camera = new RD.Camera();
@@ -39,7 +40,7 @@ function init()
 	camera.lookAt( [0,50,100],[0,0,0],[0,1,0] );
 	
 	//global settings
-	var bg_color = vec4.fromValues(0.1,0.1,0.1,1);
+	var bg_color = vec4.fromValues(0.0,0.0,0.0,1);
 	var u_color = vec4.fromValues(1.0,1.0,1.0,1);
 	var u_lightcolor = vec3.fromValues(1.0,1.0,1.0);
 	var u_lightvector = vec3.fromValues(0.0,50.0,100.0);
@@ -53,8 +54,7 @@ function init()
 		mesh: "sponza",
 		shader: "forward_plus",
 		texture: "lee_specular",
-		uniforms: {
-		}
+		uniforms: {}
 	});
 
 	scene.root.addChild( node );
@@ -70,7 +70,10 @@ function init()
 			case 2: // TILE DEBUG
 				lights.lightCulling(camera, true);
 				break;
-			case 3: // FORWARD
+			case 3: // TILE DEBUG HEAT MAP
+				lights.lightCullingHeatMap(camera);
+				break;
+			case 4: // FORWARD
 				renderer.render(scene, camera);
 				break;
 		}
@@ -82,6 +85,7 @@ function init()
 	context.onupdate = function(dt)
 	{
 		calculateFrames(dt);
+		showMode();
 		switch(mode) {
 		    case 1: // FORWARD +
 		        scene.update(dt);
@@ -89,11 +93,14 @@ function init()
 		        break;
 		    case 2: // TILE DEBUG
 		        break;
-		    case 3: // FORWARD
+		    case 3: // TILE DEBUG HEAT MAP
+		    	lights.lightCulling(camera, false);
+		        break;
+		    case 4: // FORWARD
 		        scene.update(dt);
 		        break;
 		}
-		lights.update(dt);
+		lights.update(dt * speedLightModifier);
 		manageControls(dt, camera);
 	}
 	
@@ -144,16 +151,20 @@ function init()
 			mode = 2;
 			sumFrames = totalCounts = 0;
 		}
-		if(e.keyCode == 51){ // FORWARD
+		if(e.keyCode == 51){ // TILE DEBUG HEAT MAP
 			mode = 3;
 			sumFrames = totalCounts = 0;
 		}
-		/*if(e.keyCode == 73){ //I
-			lights.addLight();
+		if(e.keyCode == 52){ // FORWARD
+			mode = 4;
+			sumFrames = totalCounts = 0;
 		}
-		if(e.keyCode == 75){ //K
-			lights.position.splice.....
-		}*/
+		if(e.keyCode == 109){ // -
+			speedLightModifier /= 1.25;
+		}
+		if(e.keyCode == 107){ // +
+			speedLightModifier *= 1.25;
+		}
 	}
 
 	context.onkeyup = function(e)

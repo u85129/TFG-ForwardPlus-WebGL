@@ -1788,8 +1788,8 @@ Renderer.prototype.renderNode = function(node, camera)
 	
 	//ADDED BY DANI
 	if(mode == 1)
-		shader_name = "forward_plus";
-	else if(mode == 3)
+		shader_name = "forward_plus_"+LI.TILE_SIZE;
+	else if(mode == 4)
 		shader_name = "new_textured_phong";
 	shader = gl.shaders[shader_name];
 	//FIN ADDED BY DANI
@@ -1814,7 +1814,8 @@ Renderer.prototype.renderNode = function(node, camera)
 			texture = gl.textures[ "white" ];
 		}
 
-		node._uniforms[texture_uniform_name] = texture.bind( slot++ );
+		if(mesh.info.groups == undefined)
+			node._uniforms[texture_uniform_name] = texture.bind( slot++ );
 	}
 
 	//flags
@@ -1864,7 +1865,9 @@ Renderer.prototype.renderNode = function(node, camera)
 	node._uniforms.u_model = node._global_matrix;
 	node._uniforms.u_eye = camera.position; 
 	node._uniforms.u_numLights = LI.NUM_LIGHTS;
-	node._uniforms.u_ambient = vec3.fromValues(0.1,0.1,0.1);
+	node._uniforms.u_ambient = vec3.fromValues(0.02,0.02,0.02);
+	//node._uniforms.u_ambient = vec3.fromValues(0.1,0.1,0.1);
+	node._uniforms.u_specular_gloss = 1.0;
 	node._uniforms.u_tileSize = LI.TILE_SIZE;
 	node._uniforms.u_screenWidth = window.innerWidth;
 	node._uniforms.u_screenHeight = window.innerHeight;
@@ -1877,26 +1880,50 @@ Renderer.prototype.renderNode = function(node, camera)
 		node.onShaderUniforms(this, shader);
 	//ADDED BY DANI
 	if(mesh.info.groups != undefined){
-		//console.log(mesh.materials);
 		if (mesh.info.groups.length > 0) {
+			slot++;
 			for (var i = 0; i < mesh.info.groups.length; i++) {
-				var material = mesh.materials[mesh.info.groups[i].material+".json"];
-				node._uniforms.u_ambient = vec3.fromValues(material.ambient[0]*.1,material.ambient[1]*.1,material.ambient[2]*.1);
-				node._uniforms.u_diffuse = vec3.fromValues(material.color[0],material.color[1],material.color[2]);
-				if(material.textures.color != undefined){
-					var path = material.textures.color.replace("\\", "/");
-					var texture = null;
-					texture = gl.textures[ path ];
-					if(!texture)
-					{
-						if(this.autoload_assets && path.indexOf(".") != -1)
-							this.loadTexture( path, this.default_texture_settings );
-						texture = gl.textures[ "white" ];
+				if(i != 3){ //DONT PRINT CENTRAL FLAG SO WE CAN SEE BETTER THE LIGHTS TRAVELING
+					var material = mesh.materials[mesh.info.groups[i].material+".json"];
+					node._uniforms.u_ambient = vec3.fromValues(material.ambient[0]*.1,material.ambient[1]*.1,material.ambient[2]*.1);
+					node._uniforms.u_diffuse = vec3.fromValues(material.color[0],material.color[1],material.color[2]);
+					if(material.specular_gloss !== undefined){
+						node._uniforms.u_specular_gloss = parseFloat(material.specular_gloss);
 					}
+					if(material.textures.color != undefined){
+						var path = material.textures.color.replace("\\", "/");
+						var texture = null;
+						texture = gl.textures[ path ];
+						if(!texture)
+						{
+							if(this.autoload_assets && path.indexOf(".") != -1)
+								this.loadTexture( path, this.default_texture_settings );
+							texture = gl.textures[ "white" ];
+						}
 
-					node._uniforms["u_color_texture"] = texture.bind( node._uniforms["u_color_texture"] );
+						node._uniforms["u_color_texture"] = texture.bind( slot );
 
-					shader.drawRange( mesh, node.primitive === undefined ? gl.TRIANGLES : node.primitive, mesh.info.groups[i].start, mesh.info.groups[i].length , node.indices );
+						if(material.textures.bump != undefined){
+							var path2 = material.textures.bump.replace("\\", "/");
+							var texture2 = null;
+							texture2 = gl.textures[ path2 ];
+							if(!texture2)
+							{
+								if(this.autoload_assets && path2.indexOf(".") != -1)
+									this.loadTexture( path2, this.default_texture_settings );
+								texture2 = gl.textures[ "white" ];
+							}
+
+							node._uniforms["u_bump_texture"] = texture2.bind( slot + 1 );
+							node._uniforms["u_existsBump"] = true;
+						}
+						else{
+							node._uniforms["u_existsBump"] = false;
+						}
+						node._uniforms["u_existsBump"] = false;
+
+						shader.drawRange( mesh, node.primitive === undefined ? gl.TRIANGLES : node.primitive, mesh.info.groups[i].start, mesh.info.groups[i].length , node.indices );
+					}
 				}
 			}
 		}
@@ -3327,7 +3354,7 @@ Renderer.prototype.createShaders = function()
                 if(kd > 0.0){\
    		          vec3 V = normalize(u_eye - v_position.xyz);\
                   vec3 vectorIncidente = normalize(v_position.xyz - aux);\
-	    		  vec3 vectorReflejado = normalize(reflect(surfaceToLight,N));\
+	    		  vec3 vectorReflejado = normalize(reflect(-surfaceToLight,N));\
 				  float cosAngle = clamp(dot(vectorReflejado, V), 0.0, 1.0);\
 	    		  ks = pow(cosAngle, 1.0);\
    			    }\
@@ -3466,7 +3493,177 @@ Renderer.prototype.createShaders = function()
 	');
 	gl.shaders["light_culling"] = this._light_culling;
 
-	this._forward_plus = new GL.Shader('\
+	this._forward_plus_8 = new GL.Shader('\
+		precision highp float;\
+		attribute vec3 a_vertex;\
+		attribute vec3 a_normal;\
+		attribute vec2 a_coord;\
+		varying vec2 v_coord;\
+		varying vec3 v_normal;\
+		varying vec4 v_position;\
+		uniform mat4 u_mvp;\
+		uniform mat4 u_model;\
+		void main() {\n\
+			v_coord = a_coord;\n\
+			v_position = u_model * vec4(a_vertex,1);\
+			v_normal = (u_model * vec4(a_normal,0.0)).xyz;\n\
+			gl_Position = u_mvp * vec4(a_vertex,1.0);\n\
+		}\
+		','\
+		precision highp float;\
+		varying vec2 v_coord;\
+		varying vec3 v_normal;\
+		varying vec4 v_position;\
+		uniform int u_numLights;\
+		uniform vec3 u_eye;\
+		uniform int u_tileSize;\
+		uniform int u_screenWidth;\
+		uniform int u_screenHeight;\
+		uniform sampler2D u_lightPositionTexture;\
+		uniform sampler2D u_lightColorTexture;\
+		uniform sampler2D u_lightCulled;\
+		uniform sampler2D u_color_texture;\
+		\
+		uniform vec3 u_ambient;\
+		uniform vec3 u_diffuse;\
+		uniform int u_totalTiles;\
+		uniform int u_totalLightIndexes;\
+		void main() {\
+			int targetLight = -1;\
+			ivec2 pixelIdx = ivec2(gl_FragCoord.xy);\
+			ivec2 tileIdx = pixelIdx / u_tileSize;\
+			ivec2 pixel0 = tileIdx * u_tileSize;\
+			vec3 finalColor;\
+			vec4 textureColor = texture2D(u_color_texture, v_coord);\
+			vec3 Iamb = u_ambient * textureColor.xyz;\
+			for(int i = 0; i < 8; i++){\
+				for(int j = 0; j < 8; j++){\
+					targetLight = i * u_tileSize + j;\
+					if(targetLight >= u_numLights)\
+						break;\
+					ivec2 tl = pixel0 + ivec2(j, i);\
+					vec2 uv = (vec2(tl) + vec2(0.5, 0.5)) / vec2(u_screenWidth, u_screenHeight);\
+            		vec4 candidate = texture2D(u_lightCulled, uv);\
+            		if(candidate.x == 1.0){\
+            			vec2 lightUV = vec2( (float(targetLight) + 0.5 ) / float(u_numLights) , 0.5);\
+            			vec3 aux = texture2D(u_lightPositionTexture, lightUV).xyz;\
+        				vec4 aux2 = texture2D(u_lightColorTexture, lightUV);\
+        				vec3 surfaceToLight = normalize(aux - v_position.xyz);\
+        				vec3 N = normalize(v_normal);\
+        				float kd = clamp(dot(N, surfaceToLight), 0.0, 1.0);\
+		            	vec3 Idiff = aux2.xyz * kd * textureColor.xyz;\
+		            	float ks = 0.0;\
+		                if(kd > 0.0){\
+		   		          vec3 V = normalize(u_eye - v_position.xyz);\
+		                  vec3 vectorIncidente = normalize(v_position.xyz - aux);\
+			    		  vec3 vectorReflejado = normalize(reflect(-surfaceToLight,N));\
+						  float cosAngle = clamp(dot(vectorReflejado, V), 0.0, 1.0);\
+			    		  ks = pow(cosAngle, 1.0);\
+		   			    }\
+		   			    vec3 Ispec =  aux2.xyz * textureColor.w * ks * textureColor.xyz;\
+		   		        float radius = aux2.w;\
+		   	            float distanceToLight = length(aux - v_position.xyz);\
+		                float attenuation = clamp(1.0 - (distanceToLight) / (radius), 0.0, 1.0);\
+		                	finalColor += attenuation*((Idiff * u_diffuse) + Ispec);\
+        			}\
+				}\
+			}\
+			finalColor = finalColor + Iamb;\
+			gl_FragColor = vec4(finalColor, 1.0);\
+		}\
+		');
+	gl.shaders["forward_plus_8"] = this._forward_plus_8;
+
+	this._forward_plus_16 = new GL.Shader('\
+		precision highp float;\
+		attribute vec3 a_vertex;\
+		attribute vec3 a_normal;\
+		attribute vec2 a_coord;\
+		varying vec2 v_coord;\
+		varying vec3 v_normal;\
+		varying vec4 v_position;\
+		uniform mat4 u_mvp;\
+		uniform mat4 u_model;\
+		void main() {\n\
+			v_coord = a_coord;\n\
+			v_position = u_model * vec4(a_vertex,1);\
+			v_normal = (u_model * vec4(a_normal,0.0)).xyz;\n\
+			gl_Position = u_mvp * vec4(a_vertex,1.0);\n\
+		}\
+		','\
+		precision highp float;\
+		varying vec2 v_coord;\
+		varying vec3 v_normal;\
+		varying vec4 v_position;\
+		uniform int u_numLights;\
+		uniform vec3 u_eye;\
+		uniform int u_tileSize;\
+		uniform int u_screenWidth;\
+		uniform int u_screenHeight;\
+		uniform sampler2D u_lightPositionTexture;\
+		uniform sampler2D u_lightColorTexture;\
+		uniform sampler2D u_lightCulled;\
+		uniform sampler2D u_color_texture;\
+		uniform sampler2D u_bump_texture;\
+		uniform bool u_existsBump;\
+		uniform float u_specular_gloss;\
+		\
+		uniform vec3 u_ambient;\
+		uniform vec3 u_diffuse;\
+		uniform int u_totalTiles;\
+		uniform int u_totalLightIndexes;\
+		void main() {\
+			int targetLight = -1;\
+			ivec2 pixelIdx = ivec2(gl_FragCoord.xy);\
+			ivec2 tileIdx = pixelIdx / u_tileSize;\
+			ivec2 pixel0 = tileIdx * u_tileSize;\
+			vec3 finalColor;\
+			vec4 textureColor = texture2D(u_color_texture, v_coord);\
+			vec3 Iamb = u_ambient * textureColor.xyz;\
+			vec3 N = normalize(v_normal);\
+			if(u_existsBump){\
+				N = texture2D(u_bump_texture, v_coord).xyz;\
+				N = 2.0 * N - 1.0;\
+				N = normalize(N);\
+			}\
+			for(int i = 0; i < 16; i++){\
+				for(int j = 0; j < 16; j++){\
+					targetLight = i * u_tileSize + j;\
+					if(targetLight >= u_numLights)\
+						break;\
+					ivec2 tl = pixel0 + ivec2(j, i);\
+					vec2 uv = (vec2(tl) + vec2(0.5, 0.5)) / vec2(u_screenWidth, u_screenHeight);\
+            		vec4 candidate = texture2D(u_lightCulled, uv);\
+            		if(candidate.x == 1.0){\
+            			vec2 lightUV = vec2( (float(targetLight) + 0.5 ) / float(u_numLights) , 0.5);\
+            			vec3 aux = texture2D(u_lightPositionTexture, lightUV).xyz;\
+        				vec4 aux2 = texture2D(u_lightColorTexture, lightUV);\
+        				vec3 surfaceToLight = normalize(aux - v_position.xyz);\
+        				float kd = clamp(dot(N, surfaceToLight), 0.0, 1.0);\
+		            	vec3 Idiff = aux2.xyz * kd * textureColor.xyz;\
+		            	float ks = 0.0;\
+		                if(kd > 0.0){\
+		   		          vec3 V = normalize(u_eye - v_position.xyz);\
+		                  vec3 vectorIncidente = normalize(v_position.xyz - aux);\
+			    		  vec3 vectorReflejado = normalize(reflect(-surfaceToLight,N));\
+						  float cosAngle = clamp(dot(vectorReflejado, V), 0.0, 1.0);\
+			    		  ks = pow(cosAngle, u_specular_gloss);\
+		   			    }\
+		   			    vec3 Ispec =  aux2.xyz * textureColor.w * ks * textureColor.xyz;\
+		   		        float radius = aux2.w;\
+		   	            float distanceToLight = length(aux - v_position.xyz);\
+		                float attenuation = clamp(1.0 - (distanceToLight) / (radius), 0.0, 1.0);\
+		                	finalColor += attenuation*((Idiff * u_diffuse) + Ispec);\
+        			}\
+				}\
+			}\
+			finalColor = finalColor + Iamb;\
+			gl_FragColor = vec4(finalColor, 1.0);\
+		}\
+		');
+	gl.shaders["forward_plus_16"] = this._forward_plus_16;
+
+	this._forward_plus_32 = new GL.Shader('\
 		precision highp float;\
 		attribute vec3 a_vertex;\
 		attribute vec3 a_normal;\
@@ -3529,7 +3726,7 @@ Renderer.prototype.createShaders = function()
 		                if(kd > 0.0){\
 		   		          vec3 V = normalize(u_eye - v_position.xyz);\
 		                  vec3 vectorIncidente = normalize(v_position.xyz - aux);\
-			    		  vec3 vectorReflejado = normalize(reflect(surfaceToLight,N));\
+			    		  vec3 vectorReflejado = normalize(reflect(-surfaceToLight,N));\
 						  float cosAngle = clamp(dot(vectorReflejado, V), 0.0, 1.0);\
 			    		  ks = pow(cosAngle, 1.0);\
 		   			    }\
@@ -3545,7 +3742,48 @@ Renderer.prototype.createShaders = function()
 			gl_FragColor = vec4(finalColor, 1.0);\
 		}\
 		');
-	gl.shaders["forward_plus"] = this._forward_plus;
+	gl.shaders["forward_plus_32"] = this._forward_plus_32;
+
+	this._light_culling_heat_map_16 = new GL.Shader('\
+		precision highp float;\
+		attribute vec3 a_vertex;\
+		attribute vec3 a_normal;\
+		attribute vec2 a_coord;\
+		void main() {\n\
+			gl_Position = vec4(a_vertex.xy, 0.999 ,1.0);\n\
+		}\
+		','\
+		precision highp float;\
+		uniform int u_numLights;\
+		uniform int u_tileSize;\
+		uniform int u_screenWidth;\
+		uniform int u_screenHeight;\
+		uniform sampler2D u_lightCulled;\
+		void main() {\
+			int targetLight = -1;\
+			ivec2 pixelIdx = ivec2(gl_FragCoord.xy);\
+			ivec2 tileIdx = pixelIdx / u_tileSize;\
+			ivec2 pixel0 = tileIdx * u_tileSize;\
+			vec3 finalColor = vec3(0.0);\
+			float totalLightsOnTile = 0.0;\
+			for(int i = 0; i < 16; i++){\
+				for(int j = 0; j < 16; j++){\
+					targetLight = i * u_tileSize + j;\
+					if(targetLight >= u_numLights)\
+						break;\
+					ivec2 tl = pixel0 + ivec2(j, i);\
+					vec2 uv = (vec2(tl) + vec2(0.5, 0.5)) / vec2(u_screenWidth, u_screenHeight);\
+            		vec4 candidate = texture2D(u_lightCulled, uv);\
+            		if(candidate.x == 1.0){\
+            			totalLightsOnTile = totalLightsOnTile + 1.0;\
+        			}\
+				}\
+			}\
+			finalColor = vec3(totalLightsOnTile / float(u_numLights));\
+			gl_FragColor = vec4(finalColor, 1.0);\
+		}\
+		');
+	gl.shaders["light_culling_heat_map_16"] = this._light_culling_heat_map_16;
 }
 
 

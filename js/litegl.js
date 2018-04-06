@@ -10523,6 +10523,7 @@ Mesh.parseOBJ = function(text, options)
 
 	var lines = text.split("\n");
 	var length = lines.length;
+
 	for (var lineIndex = 0;  lineIndex < length; ++lineIndex) {
 		var line = lines[lineIndex];
 		line = line.replace(/[ \t]+/g, " ").replace(/\s\s*$/, ""); //better than trim
@@ -10710,6 +10711,7 @@ Mesh.parseOBJ = function(text, options)
 
 			if(tokens.length > 1)
 			{
+
 				var group_pos = (indicesArray.length ? indicesArray.length : positionsArray.length / 3);
 				if(group != null)
 				{
@@ -10766,6 +10768,7 @@ Mesh.parseOBJ = function(text, options)
 		return null;
 	}
 
+
 	if(group && (indicesArray.length - group.start) > 1)
 	{
 		group.length = indicesArray.length - group.start;
@@ -10814,7 +10817,6 @@ Mesh.parseOBJ = function(text, options)
 	if(groups.length > 1)
 		info.groups = groups;
 	mesh.info = info;
-
 	//ADDED DANI
 	if(mtllib){
 		HttpRequest( "data/"+mtllib, null, function(text) {
