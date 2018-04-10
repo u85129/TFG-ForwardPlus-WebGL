@@ -31,4 +31,8 @@ var showMode = function(){
 		document.getElementById("mode").innerHTML = 'Tile Debug Heat Map';
 	if(mode == 4)
 		document.getElementById("mode").innerHTML = 'Forward';
+	if(mode == 5)
+		document.getElementById("mode").innerHTML = 'Deferred';
+	if(mode == 6)
+		document.getElementById("mode").innerHTML = 'Toon Shading';
 }

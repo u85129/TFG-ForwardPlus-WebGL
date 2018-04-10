@@ -21,6 +21,9 @@ function init()
 	var lights = LI;
 	lights.init(16, 100, 350);
 
+	var deferred = DF;
+	deferred.init();
+
 	//get shaders for text file	
 	//renderer.loadShaders("shaders.txt");
 
@@ -76,6 +79,9 @@ function init()
 			case 4: // FORWARD
 				renderer.render(scene, camera);
 				break;
+			case 6: // TOON SHADING
+				renderer.render(scene, camera);
+				break;
 		}
 		if(debuglight)
 			lights.light_debug(camera);
@@ -99,6 +105,9 @@ function init()
 		    case 4: // FORWARD
 		        scene.update(dt);
 		        break;
+		    case 6: // TOON SHADING
+		    	scene.update(dt);
+		    	break;
 		}
 		lights.update(dt * speedLightModifier);
 		manageControls(dt, camera);
@@ -157,6 +166,14 @@ function init()
 		}
 		if(e.keyCode == 52){ // FORWARD
 			mode = 4;
+			sumFrames = totalCounts = 0;
+		}
+		if(e.keyCode == 53){ // DEFERRED
+			mode = 5;
+			sumFrames = totalCounts = 0;
+		}
+		if(e.keyCode == 54){ // TOON SHADING
+			mode = 6;
 			sumFrames = totalCounts = 0;
 		}
 		if(e.keyCode == 109){ // -

@@ -1791,6 +1791,8 @@ Renderer.prototype.renderNode = function(node, camera)
 		shader_name = "forward_plus_"+LI.TILE_SIZE;
 	else if(mode == 4)
 		shader_name = "new_textured_phong";
+	else if(mode == 6)
+		shader_name = "toon_shading";
 	shader = gl.shaders[shader_name];
 	//FIN ADDED BY DANI
 
@@ -3744,6 +3746,47 @@ Renderer.prototype.createShaders = function()
 		');
 	gl.shaders["forward_plus_32"] = this._forward_plus_32;
 
+	this._light_culling_heat_map_8 = new GL.Shader('\
+		precision highp float;\
+		attribute vec3 a_vertex;\
+		attribute vec3 a_normal;\
+		attribute vec2 a_coord;\
+		void main() {\n\
+			gl_Position = vec4(a_vertex.xy, 0.999 ,1.0);\n\
+		}\
+		','\
+		precision highp float;\
+		uniform int u_numLights;\
+		uniform int u_tileSize;\
+		uniform int u_screenWidth;\
+		uniform int u_screenHeight;\
+		uniform sampler2D u_lightCulled;\
+		void main() {\
+			int targetLight = -1;\
+			ivec2 pixelIdx = ivec2(gl_FragCoord.xy);\
+			ivec2 tileIdx = pixelIdx / u_tileSize;\
+			ivec2 pixel0 = tileIdx * u_tileSize;\
+			vec3 finalColor = vec3(0.0);\
+			float totalLightsOnTile = 0.0;\
+			for(int i = 0; i < 8; i++){\
+				for(int j = 0; j < 8; j++){\
+					targetLight = i * u_tileSize + j;\
+					if(targetLight >= u_numLights)\
+						break;\
+					ivec2 tl = pixel0 + ivec2(j, i);\
+					vec2 uv = (vec2(tl) + vec2(0.5, 0.5)) / vec2(u_screenWidth, u_screenHeight);\
+            		vec4 candidate = texture2D(u_lightCulled, uv);\
+            		if(candidate.x == 1.0){\
+            			totalLightsOnTile = totalLightsOnTile + 1.0;\
+        			}\
+				}\
+			}\
+			finalColor = vec3(totalLightsOnTile / float(u_numLights));\
+			gl_FragColor = vec4(finalColor, 1.0);\
+		}\
+		');
+	gl.shaders["light_culling_heat_map_8"] = this._light_culling_heat_map_8;
+
 	this._light_culling_heat_map_16 = new GL.Shader('\
 		precision highp float;\
 		attribute vec3 a_vertex;\
@@ -3784,6 +3827,90 @@ Renderer.prototype.createShaders = function()
 		}\
 		');
 	gl.shaders["light_culling_heat_map_16"] = this._light_culling_heat_map_16;
+
+	this._light_culling_heat_map_32 = new GL.Shader('\
+		precision highp float;\
+		attribute vec3 a_vertex;\
+		attribute vec3 a_normal;\
+		attribute vec2 a_coord;\
+		void main() {\n\
+			gl_Position = vec4(a_vertex.xy, 0.999 ,1.0);\n\
+		}\
+		','\
+		precision highp float;\
+		uniform int u_numLights;\
+		uniform int u_tileSize;\
+		uniform int u_screenWidth;\
+		uniform int u_screenHeight;\
+		uniform sampler2D u_lightCulled;\
+		void main() {\
+			int targetLight = -1;\
+			ivec2 pixelIdx = ivec2(gl_FragCoord.xy);\
+			ivec2 tileIdx = pixelIdx / u_tileSize;\
+			ivec2 pixel0 = tileIdx * u_tileSize;\
+			vec3 finalColor = vec3(0.0);\
+			float totalLightsOnTile = 0.0;\
+			for(int i = 0; i < 32; i++){\
+				for(int j = 0; j < 32; j++){\
+					targetLight = i * u_tileSize + j;\
+					if(targetLight >= u_numLights)\
+						break;\
+					ivec2 tl = pixel0 + ivec2(j, i);\
+					vec2 uv = (vec2(tl) + vec2(0.5, 0.5)) / vec2(u_screenWidth, u_screenHeight);\
+            		vec4 candidate = texture2D(u_lightCulled, uv);\
+            		if(candidate.x == 1.0){\
+            			totalLightsOnTile = totalLightsOnTile + 1.0;\
+        			}\
+				}\
+			}\
+			finalColor = vec3(totalLightsOnTile / float(u_numLights));\
+			gl_FragColor = vec4(finalColor, 1.0);\
+		}\
+		');
+	gl.shaders["light_culling_heat_map_32"] = this._light_culling_heat_map_32;
+
+	this._toon_shading = new GL.Shader('\
+		precision highp float;\
+			attribute vec3 a_vertex;\
+			attribute vec3 a_normal;\
+			attribute vec2 a_coord;\
+			varying vec2 v_coord;\
+			varying vec3 v_normal;\
+			varying vec4 v_position;\
+			uniform mat4 u_mvp;\
+			uniform mat4 u_model;\
+			void main() {\n\
+				v_coord = a_coord;\n\
+				v_position = u_model * vec4(a_vertex,1);\
+				v_normal = (u_model * vec4(a_normal,0.0)).xyz;\n\
+				gl_Position = u_mvp * vec4(a_vertex,1.0);\n\
+			}\
+			', '\
+			precision highp float;\
+			varying vec3 v_normal;\
+			varying vec2 v_coord;\
+			varying vec4 v_position;\
+			uniform vec3 u_eye;\
+			uniform sampler2D u_color_texture;\
+			void main() {\
+			  vec3 N = normalize(v_normal);\
+			  vec4 textureColor = texture2D(u_color_texture, v_coord);\
+			  vec3 color = vec3(0.0,0.0,0.0);\
+        	  vec3 V = normalize(u_eye - v_position.xyz);\
+          	  float kd = clamp(dot(N, V), 0.0, 1.0);\
+          	  if (kd > 0.95)\
+        		color = vec3(1.0,1.0,1.0);\
+    		  else if (kd > 0.5)\
+        		color = vec3(0.7,0.7,0.7);\
+    		  else if (kd > 0.05)\
+        		color = vec3(0.35,0.35,0.35);\
+    		  else\
+        		color = vec3(0.1,0.1,0.1);\
+    		  color *= textureColor.xyz;\
+			  gl_FragColor = vec4(color,1.0);\
+			}\
+		');
+	gl.shaders["toon_shading"] = this._toon_shading;
 }
 
 
