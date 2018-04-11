@@ -21,7 +21,7 @@ function init()
 
 	//create lights
 	var lights = LI;
-	lights.init(16, 550);
+	lights.init(16, 350);
 
 	//folder where stuff will be loaded	
 	renderer.setDataFolder("data");
