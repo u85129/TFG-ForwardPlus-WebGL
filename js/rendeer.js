@@ -1787,10 +1787,12 @@ Renderer.prototype.renderNode = function(node, camera)
 	
 	//ADDED BY DANI
 	if( !node.flags.flip_normals && node.flags.depth_test ){
-		if(mode == 1)
+		if(mode == 1){
 			shader_name = "forward_plus_"+LI.TILE_SIZE;
-		else if(mode == 4)
+		}
+		else if(mode == 4){
 			shader_name = "new_textured_phong";
+		}
 	}
 	shader = gl.shaders[shader_name];
 	//FIN ADDED BY DANI
@@ -1853,23 +1855,23 @@ Renderer.prototype.renderNode = function(node, camera)
 	gl.activeTexture(gl.TEXTURE0 + slot);
     gl.bindTexture(gl.TEXTURE_2D, LI.positionTexture);
     node._uniforms.u_lightPositionTexture = slot;
-
-    slot++;
-    gl.activeTexture(gl.TEXTURE0 + slot);
-    gl.bindTexture(gl.TEXTURE_2D, LI.lightCulled);
-    node._uniforms.u_lightCulled = slot;
-
     node._uniforms.u_mvp = camera._mvp_matrix;
 	node._uniforms.u_model = node._global_matrix;
 	node._uniforms.u_eye = camera.position; 
 	node._uniforms.u_numLights = LI.NUM_LIGHTS;
 	node._uniforms.u_ambient = vec3.fromValues(0.02,0.02,0.02);
-	//node._uniforms.u_ambient = vec3.fromValues(0.1,0.1,0.1);
-	node._uniforms.u_specular_gloss = 1.0;
-	node._uniforms.u_tileSize = LI.TILE_SIZE;
-	node._uniforms.u_screenWidth = window.innerWidth;
-	node._uniforms.u_screenHeight = window.innerHeight;
 	node._uniforms.u_lightRadius = LI.LIGHT_RADIUS;
+	if(mode == 1){
+		slot++;
+	    gl.activeTexture(gl.TEXTURE0 + slot);
+	    gl.bindTexture(gl.TEXTURE_2D, LI.lightCulled);
+	    node._uniforms.u_lightCulled = slot;
+
+	    node._uniforms.u_tileSize = LI.TILE_SIZE;
+		node._uniforms.u_screenWidth = window.innerWidth;
+		node._uniforms.u_screenHeight = window.innerHeight;
+		node._uniforms.u_specular_gloss = 1.0;
+	}
 	//END ADDED DANI
 
 	shader.uniforms( this._uniforms ); //globals
@@ -3395,7 +3397,7 @@ Renderer.prototype.createShaders = function()
 		precision highp float;\
 		uniform int u_numLights;\
 		uniform sampler2D u_lights;\
-		uniform int u_lightsRadius;\
+		uniform int u_lightRadius;\
 		uniform int u_tileSize;\
 		uniform int u_screenWidth;\
 		uniform int u_screenHeight;\
@@ -3410,7 +3412,7 @@ Renderer.prototype.createShaders = function()
 			if(pixel < u_numLights){\
 				vec2 uv = vec2( (float(pixel) + 0.5) / float(u_numLights), 0.5);\
 				vec3 lightPosition = texture2D(u_lights, uv).xyz;\
-				float lightRadius = float(450);\
+				float lightRadius = float(u_lightRadius);\
 				\
 				vec2 fullScreenSize = vec2(u_screenWidth, u_screenHeight);\
 				vec2 ndcTileMin = 2.0 * vec2(pixel0) / fullScreenSize - vec2(1.0);\
@@ -3516,11 +3518,8 @@ Renderer.prototype.createShaders = function()
 		uniform int u_lightRadius;\
 		uniform sampler2D u_lightCulled;\
 		uniform sampler2D u_color_texture;\
-		\
 		uniform vec3 u_ambient;\
 		uniform vec3 u_diffuse;\
-		uniform int u_totalTiles;\
-		uniform int u_totalLightIndexes;\
 		void main() {\
 			int targetLight = -1;\
 			ivec2 pixelIdx = ivec2(gl_FragCoord.xy);\
@@ -3597,11 +3596,8 @@ Renderer.prototype.createShaders = function()
 		uniform sampler2D u_lightCulled;\
 		uniform sampler2D u_color_texture;\
 		uniform float u_specular_gloss;\
-		\
 		uniform vec3 u_ambient;\
 		uniform vec3 u_diffuse;\
-		uniform int u_totalTiles;\
-		uniform int u_totalLightIndexes;\
 		void main() {\
 			int targetLight = -1;\
 			ivec2 pixelIdx = ivec2(gl_FragCoord.xy);\
@@ -3677,11 +3673,8 @@ Renderer.prototype.createShaders = function()
 		uniform int u_lightRadius;\
 		uniform sampler2D u_lightCulled;\
 		uniform sampler2D u_color_texture;\
-		\
 		uniform vec3 u_ambient;\
 		uniform vec3 u_diffuse;\
-		uniform int u_totalTiles;\
-		uniform int u_totalLightIndexes;\
 		void main() {\
 			int targetLight = -1;\
 			ivec2 pixelIdx = ivec2(gl_FragCoord.xy);\

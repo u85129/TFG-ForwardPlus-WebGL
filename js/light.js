@@ -107,7 +107,6 @@ LI.lightCulling = function(camera, render){
     gl.bindTexture(gl.TEXTURE_2D, LI.lightCulled);
     
 
-
     var inv1 = inv2 = mat4.create();
     mat4.invert(inv1, camera._projection_matrix);
     mat4.invert(inv2, camera._view_matrix);
@@ -121,9 +120,7 @@ LI.lightCulling = function(camera, render){
         u_lights : 0,
         u_lightRadius : LI.LIGHT_RADIUS,
         u_lightCulled : 1,
-        u_camera_position : camera._position,
-        u_projectionMatrix : inv1,
-        u_viewMatrix : inv2
+        u_camera_position : camera._position
     });
 
     gl.bindBuffer(gl.ARRAY_BUFFER, quadPositionBuffer);
