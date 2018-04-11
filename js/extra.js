@@ -36,7 +36,7 @@ var showMode = function(){
 }
 
 var buildCity = function(scene){
-	/*skybox = new RD.SceneNode({
+	skybox = new RD.SceneNode({
 		position: [0,0,0],
 		scaling: [1000,1000,1000],
 		color: [1,1,1,1],
@@ -62,7 +62,7 @@ var buildCity = function(scene){
 			});
 			scene.root.addChild( suelo );
 		}
-	}*/
+	}
 
 	var build10 = new RD.SceneNode({
 		position: [-3000,0,-3000],
@@ -77,7 +77,7 @@ var buildCity = function(scene){
 	//build10.rotate(-Math.PI/2, [1,0,0], true);
 	scene.root.addChild( build10 );
 
-	/*var build10 = new RD.SceneNode({
+	var build10 = new RD.SceneNode({
 		position: [-1800,0,-3000],
 		scaling: [40,40,40],
 		color: [1,1,1,1],
@@ -255,6 +255,6 @@ var buildCity = function(scene){
 			});
 			scene.root.addChild( lamp );
 		}
-	}*/
+	}
 }
 
