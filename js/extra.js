@@ -48,9 +48,10 @@ var buildCity = function(scene){
 	});
 	scene.root.addChild( skybox );
 
+	var suelo = null;
 	for(var i = -7; i < 7; i++){
 		for(var j = -7; j < 7; j++){
-			var suelo = new RD.SceneNode({
+			suelo = new RD.SceneNode({
 				position: [0+i*500,0,0+j*500],
 				scaling: [500,500,500],
 				color: [1,1,1,1],
@@ -64,7 +65,7 @@ var buildCity = function(scene){
 		}
 	}
 
-	/*var build10 = new RD.SceneNode({
+	var build1 = new RD.SceneNode({
 		position: [-3000,0,-3000],
 		scaling: [40,40,40],
 		color: [1,1,1,1],
@@ -75,9 +76,9 @@ var buildCity = function(scene){
 		uniforms: {}
 	});
 	//build10.rotate(-Math.PI/2, [1,0,0], true);
-	scene.root.addChild( build10 );
+	scene.root.addChild( build1 );
 
-	var build10 = new RD.SceneNode({
+	var build2 = new RD.SceneNode({
 		position: [-1800,0,-3000],
 		scaling: [40,40,40],
 		color: [1,1,1,1],
@@ -87,9 +88,9 @@ var buildCity = function(scene){
 		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
-	scene.root.addChild( build10 );
+	scene.root.addChild( build2 );
 
-	var build10 = new RD.SceneNode({
+	var build3 = new RD.SceneNode({
 		position: [-800,0,-3000],
 		scaling: [40,40,40],
 		color: [1,1,1,1],
@@ -99,9 +100,9 @@ var buildCity = function(scene){
 		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
-	scene.root.addChild( build10 );
+	scene.root.addChild( build3 );
 
-	var build10 = new RD.SceneNode({
+	var build4 = new RD.SceneNode({
 		position: [500,0,-2900],
 		scaling: [40,40,40],
 		color: [1,1,1,1],
@@ -111,9 +112,9 @@ var buildCity = function(scene){
 		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
-	scene.root.addChild( build10 );
+	scene.root.addChild( build4 );
 
-	var build10 = new RD.SceneNode({
+	var build5 = new RD.SceneNode({
 		position: [1200,0,-2900],
 		scaling: [40,40,40],
 		color: [1,1,1,1],
@@ -123,9 +124,9 @@ var buildCity = function(scene){
 		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
-	scene.root.addChild( build10 );
+	scene.root.addChild( build5 );
 
-	var build10 = new RD.SceneNode({
+	var build6 = new RD.SceneNode({
 		position: [1900,0,-2900],
 		scaling: [40,40,40],
 		color: [1,1,1,1],
@@ -135,9 +136,9 @@ var buildCity = function(scene){
 		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
-	scene.root.addChild( build10 );
+	scene.root.addChild( build6 );
 
-	var build10 = new RD.SceneNode({
+	var build7 = new RD.SceneNode({
 		position: [2650,0,-2800],
 		scaling: [40,40,40],
 		color: [1,1,1,1],
@@ -147,9 +148,9 @@ var buildCity = function(scene){
 		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
-	scene.root.addChild( build10 );
+	scene.root.addChild( build7 );
 
-	var build10 = new RD.SceneNode({
+	var build8 = new RD.SceneNode({
 		position: [3000,0,-1400],
 		scaling: [40,40,40],
 		color: [1,1,1,1],
@@ -159,10 +160,10 @@ var buildCity = function(scene){
 		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
-	build10.rotate(Math.PI, [0,1,0], true);
-	scene.root.addChild( build10 );
-*/
-	var build10 = new RD.SceneNode({
+	build8.rotate(Math.PI, [0,1,0], true);
+	scene.root.addChild( build8 );
+
+	var build9 = new RD.SceneNode({
 		position: [1800,0,-1400],
 		scaling: [40,40,40],
 		color: [1,1,1,1],
@@ -172,8 +173,8 @@ var buildCity = function(scene){
 		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
-	build10.rotate(Math.PI, [0,1,0], true);
-	scene.root.addChild( build10 );
+	build9.rotate(Math.PI, [0,1,0], true);
+	scene.root.addChild( build9 );
 
 	var build10 = new RD.SceneNode({
 		position: [800,0,-1400],
@@ -188,7 +189,7 @@ var buildCity = function(scene){
 	build10.rotate(Math.PI, [0,1,0], true);
 	scene.root.addChild( build10 );
 
-	var build10 = new RD.SceneNode({
+	var build11 = new RD.SceneNode({
 		position: [-500,0,-1500],
 		scaling: [40,40,40],
 		color: [1,1,1,1],
@@ -198,10 +199,10 @@ var buildCity = function(scene){
 		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
-	build10.rotate(Math.PI, [0,1,0], true);
-	scene.root.addChild( build10 );
+	build11.rotate(Math.PI, [0,1,0], true);
+	scene.root.addChild( build11 );
 
-	var build10 = new RD.SceneNode({
+	var build12 = new RD.SceneNode({
 		position: [-1200,0,-1500],
 		scaling: [40,40,40],
 		color: [1,1,1,1],
@@ -211,10 +212,10 @@ var buildCity = function(scene){
 		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
-	build10.rotate(Math.PI, [0,1,0], true);
-	scene.root.addChild( build10 );
+	build12.rotate(Math.PI, [0,1,0], true);
+	scene.root.addChild( build12 );
 
-	var build10 = new RD.SceneNode({
+	var build13 = new RD.SceneNode({
 		position: [-1900,0,-1500],
 		scaling: [40,40,40],
 		color: [1,1,1,1],
@@ -224,10 +225,10 @@ var buildCity = function(scene){
 		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
-	build10.rotate(Math.PI, [0,1,0], true);
-	scene.root.addChild( build10 );
+	build13.rotate(Math.PI, [0,1,0], true);
+	scene.root.addChild( build13 );
 
-	var build10 = new RD.SceneNode({
+	var build14 = new RD.SceneNode({
 		position: [-2650,0,-1600],
 		scaling: [40,40,40],
 		color: [1,1,1,1],
@@ -237,12 +238,13 @@ var buildCity = function(scene){
 		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
-	build10.rotate(Math.PI, [0,1,0], true);
-	scene.root.addChild( build10 );
+	build14.rotate(Math.PI, [0,1,0], true);
+	scene.root.addChild( build14 );
 
+	var lamp = null;
 	for(var i = 0; i < 13; i++){
 		for(var j = 0; j < 2; j++){
-			var lamp = new RD.SceneNode({
+			lamp = new RD.SceneNode({
 				position: [-3200+i*500,0,-2450+j*500],
 				scaling: [10,10,10],
 				color: [1,1,1,1],
