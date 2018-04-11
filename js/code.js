@@ -57,7 +57,7 @@ function init()
 	var u_lightvector = vec3.fromValues(0.0,50.0,100.0);
 
 	buildCity(scene);
-	console.log("ho");
+	console.log("he");
 	//main draw function
 	context.ondraw = function(){
 		renderer.clear(bg_color);
