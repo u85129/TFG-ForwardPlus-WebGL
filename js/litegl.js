@@ -4496,12 +4496,18 @@ Texture.prototype.uploadImage = function(image, options)
 
 	//TODO: add expand transparent pixels option
 
-	//generate mipmaps
-	if (this.minFilter && this.minFilter != gl.NEAREST && this.minFilter != gl.LINEAR) {
-		gl.generateMipmap(this.texture_type);
-		this.has_mipmaps = true;
+	//generate mipmaps 
+	//ADDED BY DANI only if power of two texture
+	if(GL.isPowerOfTwo(this.width) && GL.isPowerOfTwo(this.height)){
+		if (this.minFilter && this.minFilter != gl.NEAREST && this.minFilter != gl.LINEAR) {
+			gl.generateMipmap(this.texture_type);
+			this.has_mipmaps = true;
+		}
 	}
+	//FIN ADDED BY DANI
+	
 	gl.bindTexture(this.texture_type, null); //disable
+
 }
 
 /**
