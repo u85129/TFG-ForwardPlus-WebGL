@@ -12,11 +12,7 @@ var NUM_LIGHTS = LI.NUM_LIGHTS;
 var TILE_SIZE = LI.TILE_SIZE;
 
 var lightPosition = LI.position = null;
-var lightColorRadius = LI.colorRadius = null;
 var buffer = null;
-
-var totalTilesX = LI.totalTilesX = 0;
-var totalTilesY = LI.totalTilesY = 0;
 
 var quadPositionBuffer;
 var quadPositions = new Float32Array([
@@ -30,21 +26,23 @@ var quadPositions = new Float32Array([
 
 
 LI.init = function (numTiles, lightRadius) {
-    NUM_LIGHTS = LI.NUM_LIGHTS = numLights = 26;
+    NUM_LIGHTS = LI.NUM_LIGHTS = numLights = 52;
     TILE_SIZE = LI.TILE_SIZE = numTiles;
     LIGHT_RADIUS = LI.LIGHT_RADIUS = lightRadius;
 
     lightPosition = LI.position = new Float32Array(NUM_LIGHTS * 3);
 
-    totalTilesX = LI.totalTilesX = Math.ceil(window.innerWidth/TILE_SIZE);
-    totalTilesY = Math.ceil(window.innerHeight/TILE_SIZE);
-    LI.totalTiles = totalTiles = totalTilesX * totalTilesY;
-
-    for(var i = 0; i < numLights*6; i+=3){
+    for(var i = 0; i < 52; i++){
         // pos
-        LI.position[i] = -3220+Math.floor(i/6)*500;
-        LI.position[i + 1] = 100;
-        LI.position[i + 2] = -2450+(i/3)%2*500;
+        if(i < 26){
+            LI.position[i*3] = -3220+Math.floor(i/2)*500;
+            LI.position[i*3 + 1] = 100;
+            LI.position[i*3 + 2] = -2450+i%2*500;
+        }else{
+            LI.position[i*3] = -3220+Math.floor((i-26)/2)*500;
+            LI.position[i*3 + 1] = 100;
+            LI.position[i*3 + 2] = 75+i%2*500;
+        }
     }
 
     buffer = gl.createBuffer();

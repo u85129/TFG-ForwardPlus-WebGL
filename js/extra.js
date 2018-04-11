@@ -24,7 +24,7 @@ var manageControls = function(dt, camera){
 
 var showMode = function(){
 	if(mode == 1)
-		document.getElementById("mode").innerHTML = 'Forward+';
+		document.getElementById("mode").innerHTML = 'Forward+ '+LI.TILE_SIZE;
 	if(mode == 2)
 		document.getElementById("mode").innerHTML = 'Tile Debug';
 	if(mode == 3)
@@ -246,6 +246,200 @@ var buildCity = function(scene){
 		for(var j = 0; j < 2; j++){
 			lamp = new RD.SceneNode({
 				position: [-3200+i*500,0,-2450+j*500],
+				scaling: [10,10,10],
+				color: [1,1,1,1],
+				mesh: "lamp",
+				shader: "texture",
+				texture: "stars",
+				flags: {flip_normals: false, depth_test: true},
+				uniforms: {}
+			});
+			scene.root.addChild( lamp );
+		}
+	}
+
+	//
+	var build1 = new RD.SceneNode({
+		position: [-3000,0,-500],
+		scaling: [40,40,40],
+		color: [1,1,1,1],
+		mesh: "Building_A14",
+		shader: "texture",
+		texture: "stars",
+		flags: {flip_normals: false, depth_test: true},
+		uniforms: {}
+	});
+	//build10.rotate(-Math.PI/2, [1,0,0], true);
+	scene.root.addChild( build1 );
+
+	var build2 = new RD.SceneNode({
+		position: [-1800,0,-500],
+		scaling: [40,40,40],
+		color: [1,1,1,1],
+		mesh: "Building_A11",
+		shader: "texture",
+		texture: "stars",
+		flags: {flip_normals: false, depth_test: true},
+		uniforms: {}
+	});
+	scene.root.addChild( build2 );
+
+	var build3 = new RD.SceneNode({
+		position: [-800,0,-500],
+		scaling: [40,40,40],
+		color: [1,1,1,1],
+		mesh: "Building_A11",
+		shader: "texture",
+		texture: "stars",
+		flags: {flip_normals: false, depth_test: true},
+		uniforms: {}
+	});
+	scene.root.addChild( build3 );
+
+	var build4 = new RD.SceneNode({
+		position: [500,0,-400],
+		scaling: [40,40,40],
+		color: [1,1,1,1],
+		mesh: "Building_A01",
+		shader: "texture",
+		texture: "stars",
+		flags: {flip_normals: false, depth_test: true},
+		uniforms: {}
+	});
+	scene.root.addChild( build4 );
+
+	var build5 = new RD.SceneNode({
+		position: [1200,0,-400],
+		scaling: [40,40,40],
+		color: [1,1,1,1],
+		mesh: "Building_A05",
+		shader: "texture",
+		texture: "stars",
+		flags: {flip_normals: false, depth_test: true},
+		uniforms: {}
+	});
+	scene.root.addChild( build5 );
+
+	var build6 = new RD.SceneNode({
+		position: [1900,0,-400],
+		scaling: [40,40,40],
+		color: [1,1,1,1],
+		mesh: "Building_A05",
+		shader: "texture",
+		texture: "stars",
+		flags: {flip_normals: false, depth_test: true},
+		uniforms: {}
+	});
+	scene.root.addChild( build6 );
+
+	var build7 = new RD.SceneNode({
+		position: [2650,0,-300],
+		scaling: [40,40,40],
+		color: [1,1,1,1],
+		mesh: "Building_A02",
+		shader: "texture",
+		texture: "stars",
+		flags: {flip_normals: false, depth_test: true},
+		uniforms: {}
+	});
+	scene.root.addChild( build7 );
+
+	var build8 = new RD.SceneNode({
+		position: [3000,0,1100],
+		scaling: [40,40,40],
+		color: [1,1,1,1],
+		mesh: "Building_A14",
+		shader: "texture",
+		texture: "stars",
+		flags: {flip_normals: false, depth_test: true},
+		uniforms: {}
+	});
+	build8.rotate(Math.PI, [0,1,0], true);
+	scene.root.addChild( build8 );
+
+	var build9 = new RD.SceneNode({
+		position: [1800,0,1100],
+		scaling: [40,40,40],
+		color: [1,1,1,1],
+		mesh: "Building_A11",
+		shader: "texture",
+		texture: "stars",
+		flags: {flip_normals: false, depth_test: true},
+		uniforms: {}
+	});
+	build9.rotate(Math.PI, [0,1,0], true);
+	scene.root.addChild( build9 );
+
+	var build10 = new RD.SceneNode({
+		position: [800,0,1100],
+		scaling: [40,40,40],
+		color: [1,1,1,1],
+		mesh: "Building_A11",
+		shader: "texture",
+		texture: "stars",
+		flags: {flip_normals: false, depth_test: true},
+		uniforms: {}
+	});
+	build10.rotate(Math.PI, [0,1,0], true);
+	scene.root.addChild( build10 );
+
+	var build11 = new RD.SceneNode({
+		position: [-500,0,1000],
+		scaling: [40,40,40],
+		color: [1,1,1,1],
+		mesh: "Building_A01",
+		shader: "texture",
+		texture: "stars",
+		flags: {flip_normals: false, depth_test: true},
+		uniforms: {}
+	});
+	build11.rotate(Math.PI, [0,1,0], true);
+	scene.root.addChild( build11 );
+
+	var build12 = new RD.SceneNode({
+		position: [-1200,0,1000],
+		scaling: [40,40,40],
+		color: [1,1,1,1],
+		mesh: "Building_A05",
+		shader: "texture",
+		texture: "stars",
+		flags: {flip_normals: false, depth_test: true},
+		uniforms: {}
+	});
+	build12.rotate(Math.PI, [0,1,0], true);
+	scene.root.addChild( build12 );
+
+	var build13 = new RD.SceneNode({
+		position: [-1900,0,1000],
+		scaling: [40,40,40],
+		color: [1,1,1,1],
+		mesh: "Building_A05",
+		shader: "texture",
+		texture: "stars",
+		flags: {flip_normals: false, depth_test: true},
+		uniforms: {}
+	});
+	build13.rotate(Math.PI, [0,1,0], true);
+	scene.root.addChild( build13 );
+
+	var build14 = new RD.SceneNode({
+		position: [-2650,0,900],
+		scaling: [40,40,40],
+		color: [1,1,1,1],
+		mesh: "Building_A02",
+		shader: "texture",
+		texture: "stars",
+		flags: {flip_normals: false, depth_test: true},
+		uniforms: {}
+	});
+	build14.rotate(Math.PI, [0,1,0], true);
+	scene.root.addChild( build14 );
+
+	var lamp = null;
+	for(var i = 0; i < 13; i++){
+		for(var j = 0; j < 2; j++){
+			lamp = new RD.SceneNode({
+				position: [-3200+i*500,0,75+j*500],
 				scaling: [10,10,10],
 				color: [1,1,1,1],
 				mesh: "lamp",

@@ -6,7 +6,6 @@ var speed = 200;
 var multiplier = 1;
 var fps = mediaFps = totalCounts = sumFrames = 0;
 var mode = 1;
-var speedLightModifier = 1;
 var skybox = null;
 
 function init()
@@ -57,7 +56,6 @@ function init()
 	var u_lightvector = vec3.fromValues(0.0,50.0,100.0);
 
 	buildCity(scene);
-	console.log("he");
 	//main draw function
 	context.ondraw = function(){
 		renderer.clear(bg_color);
@@ -161,15 +159,23 @@ function init()
 			mode = 5;
 			sumFrames = totalCounts = 0;
 		}
-		if(e.keyCode == 54){ // TOON SHADING
-			mode = 6;
-			sumFrames = totalCounts = 0;
-		}
 		if(e.keyCode == 109){ // -
-			speedLightModifier /= 1.25;
+			LI.LIGHT_RADIUS -= 10;
 		}
 		if(e.keyCode == 107){ // +
-			speedLightModifier *= 1.25;
+			LI.LIGHT_RADIUS += 10;
+		}
+		if(e.keyCode == 90){ // Z
+			LI.TILE_SIZE = 8;
+			sumFrames = totalCounts = 0;
+		}
+		if(e.keyCode == 88){ // X
+			LI.TILE_SIZE = 16;
+			sumFrames = totalCounts = 0;
+		}
+		if(e.keyCode == 67){ // C
+			LI.TILE_SIZE = 32;
+			sumFrames = totalCounts = 0;
 		}
 	}
 
