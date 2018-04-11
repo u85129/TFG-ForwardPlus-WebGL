@@ -1773,7 +1773,6 @@ Renderer.prototype.renderNode = function(node, camera)
 		return;
 	}
 
-	
 	//get shader
 	var shader = null;
 	var shader_name = node.shader;
@@ -1787,12 +1786,12 @@ Renderer.prototype.renderNode = function(node, camera)
 		shader = node.textures.color ? this._texture_shader : this._flat_shader;
 	
 	//ADDED BY DANI
-	if(mode == 1)
-		shader_name = "forward_plus_"+LI.TILE_SIZE;
-	else if(mode == 4)
-		shader_name = "new_textured_phong";
-	else if(mode == 6)
-		shader_name = "toon_shading";
+	if( !node.flags.flip_normals && node.flags.depth_test ){
+		if(mode == 1)
+			shader_name = "forward_plus_"+LI.TILE_SIZE;
+		else if(mode == 4)
+			shader_name = "new_textured_phong";
+	}
 	shader = gl.shaders[shader_name];
 	//FIN ADDED BY DANI
 
@@ -1815,9 +1814,11 @@ Renderer.prototype.renderNode = function(node, camera)
 				this.loadTexture( texture_name, this.default_texture_settings );
 			texture = gl.textures[ "white" ];
 		}
-
-		if(mesh.info.groups == undefined)
+		if(mesh.info == null){
 			node._uniforms[texture_uniform_name] = texture.bind( slot++ );
+		}else if(mesh.info.groups == null){
+			node._uniforms[texture_uniform_name] = texture.bind( slot++ );
+		}
 	}
 
 	//flags
@@ -1881,53 +1882,48 @@ Renderer.prototype.renderNode = function(node, camera)
 	if(node.onShaderUniforms) //in case the node wants to add extra shader uniforms that need to be computed at render time
 		node.onShaderUniforms(this, shader);
 	//ADDED BY DANI
-	if(mesh.info.groups != undefined){
-		if (mesh.info.groups.length > 0) {
-			slot++;
-			for (var i = 0; i < mesh.info.groups.length; i++) {
-				if(i != 3){ //DONT PRINT CENTRAL FLAG SO WE CAN SEE BETTER THE LIGHTS TRAVELING
-					var material = mesh.materials[mesh.info.groups[i].material+".json"];
-					node._uniforms.u_ambient = vec3.fromValues(material.ambient[0]*.1,material.ambient[1]*.1,material.ambient[2]*.1);
-					node._uniforms.u_diffuse = vec3.fromValues(material.color[0],material.color[1],material.color[2]);
-					if(material.specular_gloss !== undefined){
-						node._uniforms.u_specular_gloss = parseFloat(material.specular_gloss);
-					}
-					if(material.textures.color != undefined){
-						var path = material.textures.color.replace("\\", "/");
-						var texture = null;
-						texture = gl.textures[ path ];
-						if(!texture)
-						{
-							if(this.autoload_assets && path.indexOf(".") != -1)
-								this.loadTexture( path, this.default_texture_settings );
-							texture = gl.textures[ "white" ];
-						}
 
-						node._uniforms["u_color_texture"] = texture.bind( slot );
-
-						if(material.textures.bump != undefined){
-							var path2 = material.textures.bump.replace("\\", "/");
-							var texture2 = null;
-							texture2 = gl.textures[ path2 ];
-							if(!texture2)
-							{
-								if(this.autoload_assets && path2.indexOf(".") != -1)
-									this.loadTexture( path2, this.default_texture_settings );
-								texture2 = gl.textures[ "white" ];
+	if(mesh.info != undefined){
+		if(mesh.info.groups != undefined){
+			if (mesh.info.groups.length > 0) {
+				slot++;
+				for (var i = 0; i < mesh.info.groups.length; i++) { //mesh.info.groups.length
+					if(mesh.materials){
+						var material = mesh.materials[mesh.info.groups[i].material+".json"];
+						if(material != undefined){
+							node._uniforms.u_ambient = vec3.fromValues(material.ambient[0]*.1,material.ambient[1]*.1,material.ambient[2]*.1);
+							node._uniforms.u_diffuse = vec3.fromValues(material.color[0],material.color[1],material.color[2]);
+							if(material.specular_gloss !== undefined){
+								node._uniforms.u_specular_gloss = parseFloat(material.specular_gloss);
 							}
-
-							node._uniforms["u_bump_texture"] = texture2.bind( slot + 1 );
-							node._uniforms["u_existsBump"] = true;
+							if(material.textures.color != undefined){
+								var path = material.textures.color.replace("\\", "/");
+								var texture = null;
+								texture = gl.textures[ path ];
+								if(!texture)
+								{
+									if(this.autoload_assets && path.indexOf(".") != -1)
+										this.loadTexture( path, this.default_texture_settings );
+									texture = gl.textures[ "white" ];
+								}
+								node._uniforms["u_color_texture"] = texture.bind( slot );
+							}else{
+								node._uniforms[texture_uniform_name] = texture.bind( slot );
+							}
+						}else{
+							node._uniforms[texture_uniform_name] = texture.bind( slot );
 						}
-						else{
-							node._uniforms["u_existsBump"] = false;
-						}
-						node._uniforms["u_existsBump"] = false;
-
-						shader.drawRange( mesh, node.primitive === undefined ? gl.TRIANGLES : node.primitive, mesh.info.groups[i].start, mesh.info.groups[i].length , node.indices );
+					}else{
+						node._uniforms[texture_uniform_name] = texture.bind( slot );
 					}
+					shader.drawRange( mesh, node.primitive === undefined ? gl.TRIANGLES : node.primitive, mesh.info.groups[i].start, mesh.info.groups[i].length , node.indices );
 				}
 			}
+		}else{
+			if(node.draw_range)
+				shader.drawRange( mesh, node.primitive === undefined ? gl.TRIANGLES : node.primitive, node.draw_range[0], node.draw_range[1] , node.indices );
+			else
+				shader.draw( mesh, node.primitive === undefined ? gl.TRIANGLES : node.primitive, node.indices );
 		}
 	}else{
 		if(node.draw_range)
@@ -3606,8 +3602,6 @@ Renderer.prototype.createShaders = function()
 		uniform sampler2D u_lightColorTexture;\
 		uniform sampler2D u_lightCulled;\
 		uniform sampler2D u_color_texture;\
-		uniform sampler2D u_bump_texture;\
-		uniform bool u_existsBump;\
 		uniform float u_specular_gloss;\
 		\
 		uniform vec3 u_ambient;\
@@ -3623,11 +3617,6 @@ Renderer.prototype.createShaders = function()
 			vec4 textureColor = texture2D(u_color_texture, v_coord);\
 			vec3 Iamb = u_ambient * textureColor.xyz;\
 			vec3 N = normalize(v_normal);\
-			if(u_existsBump){\
-				N = texture2D(u_bump_texture, v_coord).xyz;\
-				N = 2.0 * N - 1.0;\
-				N = normalize(N);\
-			}\
 			for(int i = 0; i < 16; i++){\
 				for(int j = 0; j < 16; j++){\
 					targetLight = i * u_tileSize + j;\
@@ -3869,48 +3858,6 @@ Renderer.prototype.createShaders = function()
 		');
 	gl.shaders["light_culling_heat_map_32"] = this._light_culling_heat_map_32;
 
-	this._toon_shading = new GL.Shader('\
-		precision highp float;\
-			attribute vec3 a_vertex;\
-			attribute vec3 a_normal;\
-			attribute vec2 a_coord;\
-			varying vec2 v_coord;\
-			varying vec3 v_normal;\
-			varying vec4 v_position;\
-			uniform mat4 u_mvp;\
-			uniform mat4 u_model;\
-			void main() {\n\
-				v_coord = a_coord;\n\
-				v_position = u_model * vec4(a_vertex,1);\
-				v_normal = (u_model * vec4(a_normal,0.0)).xyz;\n\
-				gl_Position = u_mvp * vec4(a_vertex,1.0);\n\
-			}\
-			', '\
-			precision highp float;\
-			varying vec3 v_normal;\
-			varying vec2 v_coord;\
-			varying vec4 v_position;\
-			uniform vec3 u_eye;\
-			uniform sampler2D u_color_texture;\
-			void main() {\
-			  vec3 N = normalize(v_normal);\
-			  vec4 textureColor = texture2D(u_color_texture, v_coord);\
-			  vec3 color = vec3(0.0,0.0,0.0);\
-        	  vec3 V = normalize(u_eye - v_position.xyz);\
-          	  float kd = clamp(dot(N, V), 0.0, 1.0);\
-          	  if (kd > 0.95)\
-        		color = vec3(1.0,1.0,1.0);\
-    		  else if (kd > 0.5)\
-        		color = vec3(0.7,0.7,0.7);\
-    		  else if (kd > 0.05)\
-        		color = vec3(0.35,0.35,0.35);\
-    		  else\
-        		color = vec3(0.1,0.1,0.1);\
-    		  color *= textureColor.xyz;\
-			  gl_FragColor = vec4(color,1.0);\
-			}\
-		');
-	gl.shaders["toon_shading"] = this._toon_shading;
 }
 
 
