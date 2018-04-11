@@ -1820,6 +1820,8 @@ Renderer.prototype.renderNode = function(node, camera)
 			node._uniforms[texture_uniform_name] = texture.bind( slot++ );
 		}else if(mesh.info.groups == null){
 			node._uniforms[texture_uniform_name] = texture.bind( slot++ );
+		}else{
+			slot++;
 		}
 	}
 
