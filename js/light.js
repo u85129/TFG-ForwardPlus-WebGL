@@ -30,7 +30,7 @@ var quadPositions = new Float32Array([
 
 
 LI.init = function (numTiles, lightRadius) {
-    NUM_LIGHTS = LI.NUM_LIGHTS = numLights = 2;
+    NUM_LIGHTS = LI.NUM_LIGHTS = numLights = 26;
     TILE_SIZE = LI.TILE_SIZE = numTiles;
     LIGHT_RADIUS = LI.LIGHT_RADIUS = lightRadius;
 
