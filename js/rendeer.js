@@ -1822,6 +1822,7 @@ Renderer.prototype.renderNode = function(node, camera)
 			node._uniforms[texture_uniform_name] = texture.bind( slot++ );
 		}
 	}
+	console.log("~~~~~~ "+slot);
 
 	//flags
 	if(!this.ignore_flags)
@@ -1873,7 +1874,7 @@ Renderer.prototype.renderNode = function(node, camera)
 		node._uniforms.u_specular_gloss = 1.0;
 	}
 	//END ADDED DANI
-
+console.log(slot);
 	shader.uniforms( this._uniforms ); //globals
 	shader.uniforms( node._uniforms ); //node specifics
 
