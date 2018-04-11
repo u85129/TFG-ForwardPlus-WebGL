@@ -5,7 +5,7 @@ var debuglight = true;
 var speed = 200;
 var multiplier = 1;
 var fps = mediaFps = totalCounts = sumFrames = 0;
-var mode = 2;
+var mode = 1;
 var speedLightModifier = 1;
 var skybox = null;
 
