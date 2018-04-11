@@ -214,7 +214,7 @@ var buildCity = function(scene){
 	});
 	build10.rotate(Math.PI, [0,1,0], true);
 	scene.root.addChild( build10 );
-
+*/
 	var build10 = new RD.SceneNode({
 		position: [-1900,0,-1500],
 		scaling: [40,40,40],
@@ -240,7 +240,7 @@ var buildCity = function(scene){
 	});
 	build10.rotate(Math.PI, [0,1,0], true);
 	scene.root.addChild( build10 );
-*/
+
 	for(var i = 0; i < 13; i++){
 		for(var j = 0; j < 2; j++){
 			var lamp = new RD.SceneNode({
