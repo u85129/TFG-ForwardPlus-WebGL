@@ -36,7 +36,7 @@ LI.init = function (numTiles, lightRadius) {
         // pos
         if(i < 26){
             LI.position[i*3] = -3220+Math.floor(i/2)*500;
-            LI.position[i*3 + 1] = 100;
+            LI.position[i*3 + 1] = 100 ;
             LI.position[i*3 + 2] = -2450+i%2*500;
         }else{
             LI.position[i*3] = -3220+Math.floor((i-26)/2)*500;
@@ -44,11 +44,27 @@ LI.init = function (numTiles, lightRadius) {
             LI.position[i*3 + 2] = 75+i%2*500;
         }
     }
+    /*for(var i = 52; i < 256; i++){
+        // pos
+        if(i < 26){
+            LI.position[i*3] = Math.random() * 1500;
+            LI.position[i*3 + 1] = Math.random() * 1500;
+            LI.position[i*3 + 2] = Math.random() * 1500;
+        }else{
+            LI.position[i*3] = Math.random() * 1500;
+            LI.position[i*3 + 1] = Math.random() * 1500;
+            LI.position[i*3 + 2] = Math.random() * 1500;
+        }
+    }*/
+
 
     buffer = gl.createBuffer();
     var lightPositionTexture = LI.positionTexture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, lightPositionTexture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, NUM_LIGHTS, 1, 0, gl.RGB, gl.FLOAT, lightPosition);
+    if(gl.webgl_version == 2)
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB32F, NUM_LIGHTS, 1, 0, gl.RGB, gl.FLOAT , lightPosition);
+    else
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, NUM_LIGHTS, 1, 0, gl.RGB, gl.FLOAT , lightPosition);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -57,7 +73,7 @@ LI.init = function (numTiles, lightRadius) {
 
     var lightCulled = LI.lightCulled = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, LI.lightCulled);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, window.innerWidth, window.innerHeight, 0, gl.RGBA, gl.FLOAT, new Float32Array(window.innerWidth * window.innerHeight * 4));
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, window.innerWidth, window.innerHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
