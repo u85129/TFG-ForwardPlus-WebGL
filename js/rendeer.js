@@ -1884,7 +1884,8 @@ Renderer.prototype.renderNode = function(node, camera)
 	if(mesh.info != undefined){
 		if(mesh.info.groups != undefined){
 			if (mesh.info.groups.length > 0) {
-				slot++;
+				if(slot != 0)
+					slot++;
 				for (var i = 0; i < mesh.info.groups.length; i++) { //mesh.info.groups.length
 					if(mesh.materials){
 						var material = mesh.materials[mesh.info.groups[i].material+".json"];
