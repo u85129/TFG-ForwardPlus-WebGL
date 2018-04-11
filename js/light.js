@@ -4,15 +4,10 @@ var LI = {};
 var LI = global.LI;
 var lightPos = LI.lightPos;
 
-// for sponza
-var lightPosMin = [-1875, 0, -900];
-var lightPosMax = [1875, 1200, 900];
-
 /*var lightPosMin = [-14, -0.5, -6];
 var lightPosMax = [14, 18, 6];*/
 
-var lightVelY = -50;
-var LIGHT_RADIUS = 4;
+var LIGHT_RADIUS = 0;
 var NUM_LIGHTS = LI.NUM_LIGHTS;
 var TILE_SIZE = LI.TILE_SIZE;
 
@@ -34,50 +29,28 @@ var quadPositions = new Float32Array([
 ]);
 
 
-LI.init = function (numTiles, numLights, lightRadius) {
-    NUM_LIGHTS = LI.NUM_LIGHTS = numLights;
+LI.init = function (numTiles, lightRadius) {
+    NUM_LIGHTS = LI.NUM_LIGHTS = numLights = 2;
     TILE_SIZE = LI.TILE_SIZE = numTiles;
-    LIGHT_RADIUS = lightRadius;
-
-    if(numLights > numTiles * numTiles)
-        NUM_LIGHTS = LI.NUM_LIGHTS = numTiles * numTiles;
+    LIGHT_RADIUS = LI.LIGHT_RADIUS = lightRadius;
 
     lightPosition = LI.position = new Float32Array(NUM_LIGHTS * 3);
-    lightColorRadius = LI.colorRadius = new Float32Array(NUM_LIGHTS * 4)
 
     totalTilesX = LI.totalTilesX = Math.ceil(window.innerWidth/TILE_SIZE);
     totalTilesY = Math.ceil(window.innerHeight/TILE_SIZE);
     LI.totalTiles = totalTiles = totalTilesX * totalTilesY;
 
-    for (var i = 0; i < NUM_LIGHTS*3; i+=3) {
-
+    for(var i = 0; i < numLights*6; i+=3){
         // pos
-        LI.position[i] = Math.random() * (lightPosMax[0] - lightPosMin[0]) + lightPosMin[0];
-        LI.position[i + 1] = Math.random() * (lightPosMax[1] - lightPosMin[1]) + lightPosMin[1];
-        LI.position[i + 2] = Math.random() * (lightPosMax[2] - lightPosMin[2]) + lightPosMin[2];
-        
-    }
-
-    for (var i = 0; i < NUM_LIGHTS*4; i+=4) {
-        LI.colorRadius[i] = Math.random();
-        LI.colorRadius[i + 1] = Math.random();
-        LI.colorRadius[i + 2] = Math.random();
-        LI.colorRadius[i + 3] = LIGHT_RADIUS;
+        LI.position[i] = -3220+Math.floor(i/6)*500;
+        LI.position[i + 1] = 100;
+        LI.position[i + 2] = -2450+(i/3)%2*500;
     }
 
     buffer = gl.createBuffer();
     var lightPositionTexture = LI.positionTexture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, lightPositionTexture);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, NUM_LIGHTS, 1, 0, gl.RGB, gl.FLOAT, lightPosition);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.bindTexture(gl.TEXTURE_2D, null);
-
-    var lightColorTexture = LI.colorTexture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, lightColorTexture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, NUM_LIGHTS, 1, 0, gl.RGBA, gl.FLOAT, LI.colorRadius);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -101,31 +74,6 @@ LI.init = function (numTiles, numLights, lightRadius) {
     gl.bindBuffer(gl.ARRAY_BUFFER, quadPositionBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, quadPositions, gl.STATIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
-}
-
-LI.update = function (dt) {
-    var b;
-    var vector = resul = vec3.create();
-    for (var i = 0; i < NUM_LIGHTS; i++) {
-
-        var mn = lightPosMin[1];
-        var mx = lightPosMax[1];
-        LI.position[(i * 3) + 1] = (LI.position[(i * 3) + 1] + (lightVelY * dt));
-        
-        vector = vec3.fromValues(LI.position[i*3], LI.position[i*3 + 1], LI.position[i*3 + 2]);
-        vec3.rotateY(resul, vector,0.25*dt);
-
-        LI.position[(i * 3)] = resul[0];
-        LI.position[(i * 3) + 1] = resul[1];
-        LI.position[(i * 3) + 2] = resul[2];
-
-        if(LI.position[(i * 3) + 1] < mn)
-            LI.position[(i * 3) + 1] = mx;
-    }
-
-    gl.bindTexture(gl.TEXTURE_2D, LI.positionTexture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, NUM_LIGHTS, 1, 0, gl.RGB, gl.FLOAT, lightPosition);
-    gl.bindTexture(gl.TEXTURE_2D, null);
 }
 
 LI.light_debug = function(camera) {
@@ -156,9 +104,6 @@ LI.lightCulling = function(camera, render){
     gl.bindTexture(gl.TEXTURE_2D, LI.positionTexture);
 
     gl.activeTexture(gl.TEXTURE1);
-    gl.bindTexture(gl.TEXTURE_2D, LI.colorTexture);
-
-    gl.activeTexture(gl.TEXTURE2);
     gl.bindTexture(gl.TEXTURE_2D, LI.lightCulled);
     
 
@@ -166,6 +111,7 @@ LI.lightCulling = function(camera, render){
     var inv1 = inv2 = mat4.create();
     mat4.invert(inv1, camera._projection_matrix);
     mat4.invert(inv2, camera._view_matrix);
+
     shader.uniforms({
         u_numLights : LI.NUM_LIGHTS,
         u_tileSize : LI.TILE_SIZE,
@@ -173,8 +119,8 @@ LI.lightCulling = function(camera, render){
         u_screenHeight : window.innerHeight,
         u_invViewProjMatrix : inv,
         u_lights : 0,
-        u_lightsRadius : 1,
-        u_lightCulled : 2,
+        u_lightRadius : LI.LIGHT_RADIUS,
+        u_lightCulled : 1,
         u_camera_position : camera._position,
         u_projectionMatrix : inv1,
         u_viewMatrix : inv2
