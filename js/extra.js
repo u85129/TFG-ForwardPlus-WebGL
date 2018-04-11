@@ -48,7 +48,7 @@ var buildCity = function(scene){
 	});
 	scene.root.addChild( skybox );
 
-	/*for(var i = -7; i < 7; i++){
+	for(var i = -7; i < 7; i++){
 		for(var j = -7; j < 7; j++){
 			var suelo = new RD.SceneNode({
 				position: [0+i*500,0,0+j*500],
@@ -63,7 +63,7 @@ var buildCity = function(scene){
 			scene.root.addChild( suelo );
 		}
 	}
-
+/*
 	var build10 = new RD.SceneNode({
 		position: [-3000,0,-3000],
 		scaling: [40,40,40],
