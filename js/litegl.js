@@ -4498,7 +4498,7 @@ Texture.prototype.uploadImage = function(image, options)
 
 	//generate mipmaps 
 	//ADDED BY DANI only if power of two texture
-	if(GL.isPowerOfTwo(this.width) && GL.isPowerOfTwo(this.height) && this.width == this.height){
+	if(GL.isPowerOfTwo(this.width) && GL.isPowerOfTwo(this.height)){
 		if (this.minFilter && this.minFilter != gl.NEAREST && this.minFilter != gl.LINEAR) {
 			gl.generateMipmap(this.texture_type);
 			this.has_mipmaps = true;

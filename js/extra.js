@@ -64,7 +64,7 @@ var buildCity = function(scene){
 		}
 	}
 
-	var build10 = new RD.SceneNode({
+	/*var build10 = new RD.SceneNode({
 		position: [-3000,0,-3000],
 		scaling: [40,40,40],
 		color: [1,1,1,1],
@@ -255,6 +255,6 @@ var buildCity = function(scene){
 			});
 			scene.root.addChild( lamp );
 		}
-	}
+	}*/
 }
 
