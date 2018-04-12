@@ -7,11 +7,12 @@ var multiplier = 1;
 var fps = mediaFps = totalCounts = sumFrames = 0;
 var mode = 1;
 var skybox = null;
+var runChart = true;
 
 function init()
 {
 	//create the rendering context
-	var context = GL.create({width: window.innerWidth, height: window.innerHeight, webgl2:false});
+	var context = GL.create({width: window.innerWidth, height: window.innerHeight, webgl2:true});
 	var renderer = new RD.Renderer(context);
 	document.body.appendChild(renderer.canvas); //attach
 
@@ -21,6 +22,9 @@ function init()
 	//create lights
 	var lights = LI;
 	lights.init(16, 350);
+
+	var deferred = DF;
+	DF.init();
 
 	//folder where stuff will be loaded	
 	renderer.setDataFolder("data");
@@ -142,22 +146,28 @@ function init()
 		if(e.keyCode == 49){ // FORWARD+
 			mode = 1;
 			sumFrames = totalCounts = 0;
+			fpsData = [];
 		}
 		if(e.keyCode == 50){ // TILE DEBUG
 			mode = 2;
 			sumFrames = totalCounts = 0;
+			fpsData = [];
 		}
 		if(e.keyCode == 51){ // TILE DEBUG HEAT MAP
 			mode = 3;
 			sumFrames = totalCounts = 0;
+			fpsData = [];
 		}
 		if(e.keyCode == 52){ // FORWARD
 			mode = 4;
 			sumFrames = totalCounts = 0;
+			fpsData = [];
+			chart.options.data[0] = fpsData;
 		}
 		if(e.keyCode == 53){ // DEFERRED
 			mode = 5;
 			sumFrames = totalCounts = 0;
+			fpsData = [];
 		}
 		if(e.keyCode == 109){ // -
 			LI.LIGHT_RADIUS -= 10;
@@ -168,14 +178,20 @@ function init()
 		if(e.keyCode == 90){ // Z
 			LI.TILE_SIZE = 8;
 			sumFrames = totalCounts = 0;
+			fpsData = [];
 		}
 		if(e.keyCode == 88){ // X
 			LI.TILE_SIZE = 16;
 			sumFrames = totalCounts = 0;
+			fpsData = [];
 		}
 		if(e.keyCode == 67){ // C
 			LI.TILE_SIZE = 32;
 			sumFrames = totalCounts = 0;
+			fpsData = [];
+		}
+		if(e.keyCode == 80){ // P
+			runChart = !runChart;
 		}
 	}
 
