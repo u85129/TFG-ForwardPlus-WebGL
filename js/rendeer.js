@@ -1786,7 +1786,7 @@ Renderer.prototype.renderNode = function(node, camera)
 		shader = node.textures.color ? this._texture_shader : this._flat_shader;
 	
 	//ADDED BY DANI
-	if( !node.flags.flip_normals && node.flags.depth_test ){
+	if( !node.flags.flip_normals ){
 		if(mode == 1){
 			shader_name = "forward_plus_"+LI.TILE_SIZE;
 		}
@@ -1888,11 +1888,9 @@ Renderer.prototype.renderNode = function(node, camera)
 		node.onShaderUniforms(this, shader);
 	//ADDED BY DANI
 	if(mode >= 5){
-		if(!node.flags.depth_test)
-			return;
 		gl.bindFramebuffer(gl.FRAMEBUFFER, DF.g_buffer);
 	}
-	if(mesh.info != undefined){
+	if(mesh.info != undefined && false){
 		if(mesh.info.groups != undefined){
 			if (mesh.info.groups.length > 0) {
 				slot = 0;
@@ -1940,10 +1938,10 @@ Renderer.prototype.renderNode = function(node, camera)
 		else
 			shader.draw( mesh, node.primitive === undefined ? gl.TRIANGLES : node.primitive, node.indices );
 	}
-	//FIN ADDED BY DANI
 	if(mode >= 5){
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 	}
+	//FIN ADDED BY DANI
 	if(!this.ignore_flags)
 	{
 		if( node.flags.flip_normals ) gl.frontFace( gl.CCW );
@@ -3416,7 +3414,7 @@ Renderer.prototype.createShaders = function()
 		}\
 		','\
 		#extension GL_EXT_draw_buffers : require \n\
-		precision highp float;\
+		precision mediump float;\
 		varying vec2 v_coord;\
 		varying vec3 v_normal;\
 		varying vec4 v_position;\
@@ -3444,10 +3442,10 @@ Renderer.prototype.createShaders = function()
 		precision highp float;\
 		uniform int u_screenWidth;\
 		uniform int u_screenHeight;\
-		uniform sampler2D u_color_texture;\
+		uniform sampler2D u_buffer;\
 		void main() {\
 			vec2 uv = (gl_FragCoord.xy) / vec2(u_screenWidth, u_screenHeight);\
-    		vec4 color = texture2D(u_color_texture, uv);\
+    		vec4 color = texture2D(u_buffer, uv);\
 			gl_FragColor = vec4(color);\
 		}\
 	');

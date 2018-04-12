@@ -74,12 +74,12 @@ var showMode = function(){
 var buildCity = function(scene){
 	skybox = new RD.SceneNode({
 		position: [0,0,0],
-		scaling: [1000,1000,1000],
+		scaling: [10000,10000,10000],
 		color: [1,1,1,1],
 		mesh: "cube",
 		shader: "texture",
 		texture: "stars",
-		flags: {flip_normals: true, depth_test: false},
+		flags: {flip_normals: true, depth_test: true},
 		uniforms: {}
 	});
 	scene.root.addChild( skybox );

@@ -114,7 +114,7 @@ function init()
 	{
 		calculateFrames(dt);
 		showMode();
-		//skybox.position = camera.position;
+		skybox.position = camera.position;
 		scene.update(dt);
 		switch(mode) {
 		    case 1: // FORWARD +
