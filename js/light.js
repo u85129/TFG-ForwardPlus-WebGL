@@ -12,17 +12,7 @@ var NUM_LIGHTS = LI.NUM_LIGHTS;
 var TILE_SIZE = LI.TILE_SIZE;
 
 var lightPosition = LI.position = null;
-var buffer = null;
-
-var quadPositionBuffer;
-var quadPositions = new Float32Array([
-    -1.0, -1.0,
-    1.0, -1.0,
-    1.0,  1.0,
-    1.0,  1.0,
-    -1.0,  1.0,
-    -1.0, -1.0
-]);
+var buffer = quad = null;
 
 
 LI.init = function (numTiles, lightRadius) {
@@ -84,10 +74,7 @@ LI.init = function (numTiles, lightRadius) {
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, LI.lightCulled, 0);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
-    quadPositionBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, quadPositionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, quadPositions, gl.STATIC_DRAW);
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+    quad = GL.Mesh.getScreenQuad();
 }
 
 LI.light_debug = function(camera) {
@@ -117,10 +104,6 @@ LI.lightCulling = function(camera, render){
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, LI.positionTexture);
 
-    gl.activeTexture(gl.TEXTURE1);
-    gl.bindTexture(gl.TEXTURE_2D, LI.lightCulled);
-    
-
     var inv1 = inv2 = mat4.create();
     mat4.invert(inv1, camera._projection_matrix);
     mat4.invert(inv2, camera._view_matrix);
@@ -133,24 +116,17 @@ LI.lightCulling = function(camera, render){
         u_invViewProjMatrix : inv,
         u_lights : 0,
         u_lightRadius : LI.LIGHT_RADIUS,
-        u_lightCulled : 1,
         u_camera_position : camera._position
     });
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, quadPositionBuffer);
-
-    gl.enableVertexAttribArray(gl.getAttribLocation(shader.program, 'a_vertex'));
-    gl.vertexAttribPointer(gl.getAttribLocation(shader.program, 'a_vertex'), 2, gl.FLOAT, false, 0, 0);
 
     if(!render)
         gl.bindFramebuffer(gl.FRAMEBUFFER, LI.lightCulledFrameBuffer);
 
-    gl.drawArrays(gl.TRIANGLES, 0, 6);
+    shader.draw(quad);
 
     if(!render)
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
 }
 
@@ -180,14 +156,8 @@ LI.lightCullingHeatMap = function(camera){
         u_viewMatrix : inv2
     });
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, quadPositionBuffer);
+    shader.draw(quad);
 
-    gl.enableVertexAttribArray(gl.getAttribLocation(shader.program, 'a_vertex'));
-    gl.vertexAttribPointer(gl.getAttribLocation(shader.program, 'a_vertex'), 2, gl.FLOAT, false, 0, 0);
-
-    gl.drawArrays(gl.TRIANGLES, 0, 6);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
 }
 
 

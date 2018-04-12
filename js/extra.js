@@ -59,6 +59,16 @@ var showMode = function(){
 		document.getElementById("mode").innerHTML = 'Forward';
 	if(mode == 5)
 		document.getElementById("mode").innerHTML = 'Deferred';
+	if(mode == 6)
+		document.getElementById("mode").innerHTML = 'Deferred: Position Texture';
+	if(mode == 7)
+		document.getElementById("mode").innerHTML = 'Deferred: Normal Texture';
+	if(mode == 8)
+		document.getElementById("mode").innerHTML = 'Deferred: UV texture';
+	if(mode == 9)
+		document.getElementById("mode").innerHTML = 'Deferred: Color texture';
+	if(mode == 10)
+		document.getElementById("mode").innerHTML = 'Deferred: Depth Texture';
 }
 
 var buildCity = function(scene){
@@ -97,7 +107,7 @@ var buildCity = function(scene){
 		color: [1,1,1,1],
 		mesh: "Building_A14",
 		shader: "texture",
-		texture: "stars",
+		texture: "terrainTex",
 		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
@@ -110,7 +120,7 @@ var buildCity = function(scene){
 		color: [1,1,1,1],
 		mesh: "Building_A11",
 		shader: "texture",
-		texture: "stars",
+		texture: "terrainTex",
 		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
@@ -122,7 +132,7 @@ var buildCity = function(scene){
 		color: [1,1,1,1],
 		mesh: "Building_A11",
 		shader: "texture",
-		texture: "stars",
+		texture: "terrainTex",
 		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
@@ -134,7 +144,7 @@ var buildCity = function(scene){
 		color: [1,1,1,1],
 		mesh: "Building_A01",
 		shader: "texture",
-		texture: "stars",
+		texture: "terrainTex",
 		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
@@ -146,7 +156,7 @@ var buildCity = function(scene){
 		color: [1,1,1,1],
 		mesh: "Building_A05",
 		shader: "texture",
-		texture: "stars",
+		texture: "terrainTex",
 		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
@@ -158,7 +168,7 @@ var buildCity = function(scene){
 		color: [1,1,1,1],
 		mesh: "Building_A05",
 		shader: "texture",
-		texture: "stars",
+		texture: "terrainTex",
 		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
@@ -170,7 +180,7 @@ var buildCity = function(scene){
 		color: [1,1,1,1],
 		mesh: "Building_A02",
 		shader: "texture",
-		texture: "stars",
+		texture: "terrainTex",
 		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
@@ -182,7 +192,7 @@ var buildCity = function(scene){
 		color: [1,1,1,1],
 		mesh: "Building_A14",
 		shader: "texture",
-		texture: "stars",
+		texture: "terrainTex",
 		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
@@ -195,7 +205,7 @@ var buildCity = function(scene){
 		color: [1,1,1,1],
 		mesh: "Building_A11",
 		shader: "texture",
-		texture: "stars",
+		texture: "terrainTex",
 		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
@@ -208,7 +218,7 @@ var buildCity = function(scene){
 		color: [1,1,1,1],
 		mesh: "Building_A11",
 		shader: "texture",
-		texture: "stars",
+		texture: "terrainTex",
 		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
@@ -221,7 +231,7 @@ var buildCity = function(scene){
 		color: [1,1,1,1],
 		mesh: "Building_A01",
 		shader: "texture",
-		texture: "stars",
+		texture: "terrainTex",
 		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
@@ -234,7 +244,7 @@ var buildCity = function(scene){
 		color: [1,1,1,1],
 		mesh: "Building_A05",
 		shader: "texture",
-		texture: "stars",
+		texture: "terrainTex",
 		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
@@ -247,7 +257,7 @@ var buildCity = function(scene){
 		color: [1,1,1,1],
 		mesh: "Building_A05",
 		shader: "texture",
-		texture: "stars",
+		texture: "terrainTex",
 		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
@@ -260,7 +270,7 @@ var buildCity = function(scene){
 		color: [1,1,1,1],
 		mesh: "Building_A02",
 		shader: "texture",
-		texture: "stars",
+		texture: "terrainTex",
 		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
@@ -276,7 +286,7 @@ var buildCity = function(scene){
 				color: [1,1,1,1],
 				mesh: "lamp",
 				shader: "texture",
-				texture: "stars",
+				texture: "terrainTex",
 				flags: {flip_normals: false, depth_test: true},
 				uniforms: {}
 			});
@@ -291,7 +301,7 @@ var buildCity = function(scene){
 		color: [1,1,1,1],
 		mesh: "Building_A14",
 		shader: "texture",
-		texture: "stars",
+		texture: "terrainTex",
 		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
@@ -304,7 +314,7 @@ var buildCity = function(scene){
 		color: [1,1,1,1],
 		mesh: "Building_A11",
 		shader: "texture",
-		texture: "stars",
+		texture: "terrainTex",
 		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
@@ -316,7 +326,7 @@ var buildCity = function(scene){
 		color: [1,1,1,1],
 		mesh: "Building_A11",
 		shader: "texture",
-		texture: "stars",
+		texture: "terrainTex",
 		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
@@ -328,7 +338,7 @@ var buildCity = function(scene){
 		color: [1,1,1,1],
 		mesh: "Building_A01",
 		shader: "texture",
-		texture: "stars",
+		texture: "terrainTex",
 		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
@@ -340,7 +350,7 @@ var buildCity = function(scene){
 		color: [1,1,1,1],
 		mesh: "Building_A05",
 		shader: "texture",
-		texture: "stars",
+		texture: "terrainTex",
 		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
@@ -352,7 +362,7 @@ var buildCity = function(scene){
 		color: [1,1,1,1],
 		mesh: "Building_A05",
 		shader: "texture",
-		texture: "stars",
+		texture: "terrainTex",
 		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
@@ -364,7 +374,7 @@ var buildCity = function(scene){
 		color: [1,1,1,1],
 		mesh: "Building_A02",
 		shader: "texture",
-		texture: "stars",
+		texture: "terrainTex",
 		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
@@ -376,7 +386,7 @@ var buildCity = function(scene){
 		color: [1,1,1,1],
 		mesh: "Building_A14",
 		shader: "texture",
-		texture: "stars",
+		texture: "terrainTex",
 		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
@@ -389,7 +399,7 @@ var buildCity = function(scene){
 		color: [1,1,1,1],
 		mesh: "Building_A11",
 		shader: "texture",
-		texture: "stars",
+		texture: "terrainTex",
 		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
@@ -402,7 +412,7 @@ var buildCity = function(scene){
 		color: [1,1,1,1],
 		mesh: "Building_A11",
 		shader: "texture",
-		texture: "stars",
+		texture: "terrainTex",
 		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
@@ -415,7 +425,7 @@ var buildCity = function(scene){
 		color: [1,1,1,1],
 		mesh: "Building_A01",
 		shader: "texture",
-		texture: "stars",
+		texture: "terrainTex",
 		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
@@ -428,7 +438,7 @@ var buildCity = function(scene){
 		color: [1,1,1,1],
 		mesh: "Building_A05",
 		shader: "texture",
-		texture: "stars",
+		texture: "terrainTex",
 		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
@@ -441,7 +451,7 @@ var buildCity = function(scene){
 		color: [1,1,1,1],
 		mesh: "Building_A05",
 		shader: "texture",
-		texture: "stars",
+		texture: "terrainTex",
 		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
@@ -454,7 +464,7 @@ var buildCity = function(scene){
 		color: [1,1,1,1],
 		mesh: "Building_A02",
 		shader: "texture",
-		texture: "stars",
+		texture: "terrainTex",
 		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
@@ -470,7 +480,7 @@ var buildCity = function(scene){
 				color: [1,1,1,1],
 				mesh: "lamp",
 				shader: "texture",
-				texture: "stars",
+				texture: "terrainTex",
 				flags: {flip_normals: false, depth_test: true},
 				uniforms: {}
 			});

@@ -12,9 +12,13 @@ var runChart = true;
 function init()
 {
 	//create the rendering context
-	var context = GL.create({width: window.innerWidth, height: window.innerHeight, webgl2:true});
+	var context = GL.create({width: window.innerWidth, height: window.innerHeight, webgl2:false});
 	var renderer = new RD.Renderer(context);
 	document.body.appendChild(renderer.canvas); //attach
+
+	var ext = gl.getExtension('WEBGL_draw_buffers');
+	if(!ext)
+		throw "Browser doesnt have WEBGL_draw_buffers extension";
 
 	//create a scene
 	scene = new RD.Scene();
@@ -43,10 +47,11 @@ function init()
 		renderer.loadMesh(text+i+".obj", text+i, null);
 	}
 
-
 	//create texture
 	renderer.loadTexture("stars.jpg", {temp_color:[80,120,40,255], name: "stars"}, null);
 	renderer.loadTexture("brick.jpg", {temp_color:[80,120,40,255], name: "terrainTex"}, null);
+
+	buildCity(scene);
 	
 	//create camera
 	var camera = new RD.Camera();
@@ -56,25 +61,48 @@ function init()
 	//global settings
 	var bg_color = vec4.fromValues(0.0,0.0,0.0,1);
 	var u_color = vec4.fromValues(1.0,1.0,1.0,1);
-	var u_lightcolor = vec3.fromValues(1.0,1.0,1.0);
-	var u_lightvector = vec3.fromValues(0.0,50.0,100.0);
 
-	buildCity(scene);
 	//main draw function
 	context.ondraw = function(){
 		renderer.clear(bg_color);
 		switch(mode) {
 			case 1: // FORWARD +
+				lights.lightCulling(camera, false);
 				renderer.render(scene, camera);
 				break;
 			case 2: // TILE DEBUG
 				lights.lightCulling(camera, true);
 				break;
 			case 3: // TILE DEBUG HEAT MAP
+				lights.lightCulling(camera, false);
 				lights.lightCullingHeatMap(camera);
 				break;
 			case 4: // FORWARD
 				renderer.render(scene, camera);
+				break;
+			case 5: // DEFERRED
+				renderer.render(scene, camera);
+				DF.renderScene();
+				break;
+			case 6: //DEFERRED POSITION
+				renderer.render(scene, camera);
+				DF.renderBuffer(0);
+				break;
+			case 7: //DEFERRED NORMAL
+				renderer.render(scene, camera);
+				DF.renderBuffer(1);
+				break;
+			case 8: //DEFERRED UV
+				renderer.render(scene, camera);
+				DF.renderBuffer(2);
+				break;
+			case 9: //DEFERRED COLOR
+				renderer.render(scene, camera);
+				DF.renderBuffer(3);
+				break;
+			case 10: //DEFERRED DEPTH
+				renderer.render(scene, camera);
+				DF.renderBuffer(4);
 				break;
 		}
 		if(debuglight)
@@ -86,19 +114,18 @@ function init()
 	{
 		calculateFrames(dt);
 		showMode();
-		skybox.position = camera.position;
+		//skybox.position = camera.position;
+		scene.update(dt);
 		switch(mode) {
 		    case 1: // FORWARD +
-		        scene.update(dt);
-		        lights.lightCulling(camera, false);
 		        break;
 		    case 2: // TILE DEBUG
 		        break;
 		    case 3: // TILE DEBUG HEAT MAP
-		    	lights.lightCulling(camera, false);
 		        break;
 		    case 4: // FORWARD
-		        scene.update(dt);
+		        break;
+		    case 5: // DEFERRED
 		        break;
 		}
 		manageControls(dt, camera);
@@ -166,6 +193,31 @@ function init()
 		}
 		if(e.keyCode == 53){ // DEFERRED
 			mode = 5;
+			sumFrames = totalCounts = 0;
+			fpsData = [];
+		}
+		if(e.keyCode == 54){ // DEFERRED POSITION
+			mode = 6;
+			sumFrames = totalCounts = 0;
+			fpsData = [];
+		}
+		if(e.keyCode == 55){ // DEFERRED NORMAL
+			mode = 7;
+			sumFrames = totalCounts = 0;
+			fpsData = [];
+		}
+		if(e.keyCode == 56){ // DEFERRED UV
+			mode = 8;
+			sumFrames = totalCounts = 0;
+			fpsData = [];
+		}
+		if(e.keyCode == 57){ // DEFERRED COLOR
+			mode = 9;
+			sumFrames = totalCounts = 0;
+			fpsData = [];
+		}
+		if(e.keyCode == 48){ // DEFERRED DEPTH
+			mode = 10;
 			sumFrames = totalCounts = 0;
 			fpsData = [];
 		}

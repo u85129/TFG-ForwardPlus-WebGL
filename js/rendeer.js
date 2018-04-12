@@ -1793,6 +1793,9 @@ Renderer.prototype.renderNode = function(node, camera)
 		else if(mode == 4){
 			shader_name = "new_textured_phong";
 		}
+		else if(mode == 5){
+			shader_name = "fill_g_buffer";
+		}
 	}
 	shader = gl.shaders[shader_name];
 	//FIN ADDED BY DANI
@@ -1854,15 +1857,17 @@ Renderer.prototype.renderNode = function(node, camera)
 
 	//ADDED DANI
 	//For this project the meshes will always need this uniforms (more or less) so we add it for every mesh automatically
-	gl.activeTexture(gl.TEXTURE0 + slot);
-    gl.bindTexture(gl.TEXTURE_2D, LI.positionTexture);
-    node._uniforms.u_lightPositionTexture = slot;
-    node._uniforms.u_mvp = camera._mvp_matrix;
+	node._uniforms.u_mvp = camera._mvp_matrix;
 	node._uniforms.u_model = node._global_matrix;
-	node._uniforms.u_eye = camera.position; 
-	node._uniforms.u_numLights = LI.NUM_LIGHTS;
-	node._uniforms.u_ambient = vec3.fromValues(0.02,0.02,0.02);
-	node._uniforms.u_lightRadius = LI.LIGHT_RADIUS;
+	if(mode == 1 || mode == 4){
+		gl.activeTexture(gl.TEXTURE0 + slot);
+	    gl.bindTexture(gl.TEXTURE_2D, LI.positionTexture);
+	    node._uniforms.u_lightPositionTexture = slot;
+		node._uniforms.u_eye = camera.position; 
+		node._uniforms.u_numLights = LI.NUM_LIGHTS;
+		node._uniforms.u_ambient = vec3.fromValues(0.02,0.02,0.02);
+		node._uniforms.u_lightRadius = LI.LIGHT_RADIUS;
+	}
 	if(mode == 1){
 		slot++;
 	    gl.activeTexture(gl.TEXTURE0 + slot);
@@ -1882,7 +1887,11 @@ Renderer.prototype.renderNode = function(node, camera)
 	if(node.onShaderUniforms) //in case the node wants to add extra shader uniforms that need to be computed at render time
 		node.onShaderUniforms(this, shader);
 	//ADDED BY DANI
-
+	if(mode >= 5){
+		if(!node.flags.depth_test)
+			return;
+		gl.bindFramebuffer(gl.FRAMEBUFFER, DF.g_buffer);
+	}
 	if(mesh.info != undefined){
 		if(mesh.info.groups != undefined){
 			if (mesh.info.groups.length > 0) {
@@ -1932,7 +1941,9 @@ Renderer.prototype.renderNode = function(node, camera)
 			shader.draw( mesh, node.primitive === undefined ? gl.TRIANGLES : node.primitive, node.indices );
 	}
 	//FIN ADDED BY DANI
-
+	if(mode >= 5){
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+	}
 	if(!this.ignore_flags)
 	{
 		if( node.flags.flip_normals ) gl.frontFace( gl.CCW );
@@ -3339,7 +3350,7 @@ Renderer.prototype.createShaders = function()
 			  vec4 textureColor = texture2D(u_color_texture, v_coord);\
 			  vec3 finalColor;\
 			  vec3 Iamb = u_ambient * textureColor.xyz;\
-			  for (int i = 0; i < 1024; i++)\
+			  for (int i = 0; i < 2048; i++)\
     		  {\
             	if (i >= u_numLights) break;\
             	vec2 lightUV = vec2( (float(i) + 0.5 ) / float(u_numLights) , 0.5);\
@@ -3387,13 +3398,68 @@ Renderer.prototype.createShaders = function()
 	');
 	gl.shaders["light_debug"] = this._light_debug;
 
+	this._fill_g_buffer = new GL.Shader('\
+		precision highp float;\
+		attribute vec3 a_vertex;\
+		attribute vec3 a_normal;\
+		attribute vec2 a_coord;\
+		varying vec2 v_coord;\
+		varying vec3 v_normal;\
+		varying vec4 v_position;\
+		uniform mat4 u_mvp;\
+		uniform mat4 u_model;\
+		void main() {\n\
+			v_coord = a_coord;\n\
+			v_position = u_model * vec4(a_vertex,1);\
+			v_normal = (u_model * vec4(a_normal,0.0)).xyz;\n\
+			gl_Position = u_mvp * vec4(a_vertex,1.0);\n\
+		}\
+		','\
+		#extension GL_EXT_draw_buffers : require \n\
+		precision highp float;\
+		varying vec2 v_coord;\
+		varying vec3 v_normal;\
+		varying vec4 v_position;\
+		uniform int u_numLights;\
+		uniform sampler2D u_color_texture;\
+		void main() {\
+			vec3 N = normalize(v_normal);\
+			gl_FragData[0] = v_position;\
+			gl_FragData[1] = vec4(N, 1.0);\
+			gl_FragData[2] = vec4(v_coord,0.0,1.0);\
+			gl_FragData[3] = texture2D(u_color_texture, v_coord);\
+		}\
+	');
+	gl.shaders["fill_g_buffer"] = this._fill_g_buffer;
+
+	this._show_g_buffer = new GL.Shader('\
+		precision highp float;\
+		attribute vec3 a_vertex;\
+		attribute vec3 a_normal;\
+		attribute vec2 a_coord;\
+		void main() {\n\
+			gl_Position = vec4(a_vertex.xy * 2.0 - 1.0, 0.999 ,1.0);\n\
+		}\
+		','\
+		precision highp float;\
+		uniform int u_screenWidth;\
+		uniform int u_screenHeight;\
+		uniform sampler2D u_color_texture;\
+		void main() {\
+			vec2 uv = (gl_FragCoord.xy) / vec2(u_screenWidth, u_screenHeight);\
+    		vec4 color = texture2D(u_color_texture, uv);\
+			gl_FragColor = vec4(color);\
+		}\
+	');
+	gl.shaders["show_g_buffer"] = this._show_g_buffer;
+
 	this._light_culling = new GL.Shader('\
 		precision highp float;\
 		attribute vec3 a_vertex;\
 		attribute vec3 a_normal;\
 		attribute vec2 a_coord;\
 		void main() {\n\
-			gl_Position = vec4(a_vertex.xy, 0.999 ,1.0);\n\
+			gl_Position = vec4(a_vertex.xy * 2.0 - 1.0, 0.999 ,1.0);\n\
 		}\
 		','\
 		precision highp float;\
@@ -3795,7 +3861,7 @@ Renderer.prototype.createShaders = function()
 		attribute vec3 a_normal;\
 		attribute vec2 a_coord;\
 		void main() {\n\
-			gl_Position = vec4(a_vertex.xy, 0.999 ,1.0);\n\
+			gl_Position = vec4(a_vertex.xy * 2.0 - 1.0, 0.999 ,1.0);\n\
 		}\
 		','\
 		precision highp float;\
@@ -3845,7 +3911,7 @@ Renderer.prototype.createShaders = function()
 		attribute vec3 a_normal;\
 		attribute vec2 a_coord;\
 		void main() {\n\
-			gl_Position = vec4(a_vertex.xy, 0.999 ,1.0);\n\
+			gl_Position = vec4(a_vertex.xy * 2.0 - 1.0, 0.999 ,1.0);\n\
 		}\
 		','\
 		precision highp float;\
@@ -3895,7 +3961,7 @@ Renderer.prototype.createShaders = function()
 		attribute vec3 a_normal;\
 		attribute vec2 a_coord;\
 		void main() {\n\
-			gl_Position = vec4(a_vertex.xy, 0.999 ,1.0);\n\
+			gl_Position = vec4(a_vertex.xy * 2.0 - 1.0, 0.999 ,1.0);\n\
 		}\
 		','\
 		precision highp float;\
