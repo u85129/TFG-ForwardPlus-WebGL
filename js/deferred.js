@@ -54,21 +54,14 @@ DF.init = function () {
     gl.bindTexture(gl.TEXTURE_2D, null);
 
 
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.getExtension('WEBGL_draw_buffers').COLOR_ATTACHMENT0_WEBGL, gl.TEXTURE_2D, DF.positionTexture, 0);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.getExtension('WEBGL_draw_buffers').COLOR_ATTACHMENT1_WEBGL, gl.TEXTURE_2D, DF.normalTexture, 0);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.getExtension('WEBGL_draw_buffers').COLOR_ATTACHMENT2_WEBGL, gl.TEXTURE_2D, DF.uvTexture, 0);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.getExtension('WEBGL_draw_buffers').COLOR_ATTACHMENT3_WEBGL, gl.TEXTURE_2D, DF.colorTexture, 0);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, DF.positionTexture, 0);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+1, gl.TEXTURE_2D, DF.normalTexture, 0);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+2, gl.TEXTURE_2D, DF.uvTexture, 0);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+3, gl.TEXTURE_2D, DF.colorTexture, 0);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, DF.depthTexture, 0);
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     DF.g_buffer = g_buffer;
-
-    gl.getExtension('WEBGL_draw_buffers').drawBuffersWEBGL([
-      gl.getExtension('WEBGL_draw_buffers').COLOR_ATTACHMENT0_WEBGL, // gl_FragData[0]
-      gl.getExtension('WEBGL_draw_buffers').COLOR_ATTACHMENT1_WEBGL, // gl_FragData[1]
-      gl.getExtension('WEBGL_draw_buffers').COLOR_ATTACHMENT2_WEBGL, // gl_FragData[2]
-      gl.getExtension('WEBGL_draw_buffers').COLOR_ATTACHMENT3_WEBGL  // gl_FragData[3]
-    ]);
 }
 
 DF.renderScene = function(){

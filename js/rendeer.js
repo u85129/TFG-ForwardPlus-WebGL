@@ -1793,7 +1793,7 @@ Renderer.prototype.renderNode = function(node, camera)
 		else if(mode == 4){
 			shader_name = "new_textured_phong";
 		}
-		else if(mode == 5){
+		else if(mode >= 5){
 			shader_name = "fill_g_buffer";
 		}
 	}
@@ -1890,7 +1890,7 @@ Renderer.prototype.renderNode = function(node, camera)
 	if(mode >= 5){
 		gl.bindFramebuffer(gl.FRAMEBUFFER, DF.g_buffer);
 	}
-	if(mesh.info != undefined && false){
+	if(mesh.info != undefined){
 		if(mesh.info.groups != undefined){
 			if (mesh.info.groups.length > 0) {
 				slot = 0;
