@@ -3833,11 +3833,11 @@ Renderer.prototype.createShaders = function()
 			vec4 textureColor = texture2D(u_color_texture, v_coord);\
 			vec3 Iamb = u_ambient * textureColor.xyz;\
 			vec3 N = normalize(v_normal);\
-			for(int i = 0; i < 16; i++){\
+			for(int i = 0; i < 64; i++){\
 				targetLightAux = 4 * (i * u_tileSize);\
 				if(targetLightAux >= u_numLights)\
 					break;\
-				for(int j = 0; j < 16; j++){\
+				for(int j = 0; j < 64; j++){\
 					targetLight = 4 * (i * u_tileSize + j);\
 					if(targetLight >= u_numLights)\
 						break;\

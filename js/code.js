@@ -16,9 +16,9 @@ function init()
 	var renderer = new RD.Renderer(context);
 	document.body.appendChild(renderer.canvas); //attach
 
-	var ext = gl.getExtension('WEBGL_draw_buffers');
+	/*var ext = gl.getExtension('WEBGL_draw_buffers');
 	if(!ext)
-		throw "Browser doesnt have WEBGL_draw_buffers extension";
+		throw "Browser doesnt have WEBGL_draw_buffers extension";*/
 
 	//create a scene
 	scene = new RD.Scene();
@@ -46,6 +46,7 @@ function init()
 
 		renderer.loadMesh(text+i+".obj", text+i, null);
 	}
+
 
 	//create texture
 	renderer.loadTexture("stars.jpg", {temp_color:[80,120,40,255], name: "stars"}, null);

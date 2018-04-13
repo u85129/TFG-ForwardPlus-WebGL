@@ -86,7 +86,7 @@ var buildCity = function(scene){
 
 	var suelo = null;
 	for(var i = -7; i < 7; i++){
-		for(var j = -7; j < 7; j++){
+		for(var j = -7; j < 5; j++){
 			suelo = new RD.SceneNode({
 				position: [0+i*500,0,0+j*500],
 				scaling: [500,500,500],
@@ -111,6 +111,7 @@ var buildCity = function(scene){
 		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
+	console.log(gl.meshes);
 	//build10.rotate(-Math.PI/2, [1,0,0], true);
 	scene.root.addChild( build1 );
 
