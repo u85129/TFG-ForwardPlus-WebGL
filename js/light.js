@@ -16,13 +16,13 @@ var buffer = quad = null;
 
 
 LI.init = function (numTiles, lightRadius) {
-    NUM_LIGHTS = LI.NUM_LIGHTS = numLights = 52;
+    NUM_LIGHTS = LI.NUM_LIGHTS = numLights = 256;
     TILE_SIZE = LI.TILE_SIZE = numTiles;
     LIGHT_RADIUS = LI.LIGHT_RADIUS = lightRadius;
 
     lightPosition = LI.position = new Float32Array(NUM_LIGHTS * 3);
 
-    for(var i = 0; i < 52; i++){
+    /*for(var i = 0; i < 52; i++){
         // pos
         if(i < 26){
             LI.position[i*3] = -3220+Math.floor(i/2)*500;
@@ -33,19 +33,13 @@ LI.init = function (numTiles, lightRadius) {
             LI.position[i*3 + 1] = 100;
             LI.position[i*3 + 2] = 75+i%2*500;
         }
-    }
-    /*for(var i = 52; i < 256; i++){
-        // pos
-        if(i < 26){
-            LI.position[i*3] = Math.random() * 1500;
-            LI.position[i*3 + 1] = Math.random() * 1500;
-            LI.position[i*3 + 2] = Math.random() * 1500;
-        }else{
-            LI.position[i*3] = Math.random() * 1500;
-            LI.position[i*3 + 1] = Math.random() * 1500;
-            LI.position[i*3 + 2] = Math.random() * 1500;
-        }
     }*/
+    for(var i = 0; i < numLights; i++){
+        // pos
+        LI.position[i*3] = Math.random() * 6000 - 3000;
+        LI.position[i*3 + 1] = Math.random() * 1500;
+        LI.position[i*3 + 2] = Math.random() * 6000 - 3000;
+    }
 
 
     buffer = gl.createBuffer();

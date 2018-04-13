@@ -28,7 +28,7 @@ function init()
 	lights.init(16, 350);
 
 	var deferred = DF;
-	DF.init();
+	//DF.init();
 
 	//folder where stuff will be loaded	
 	renderer.setDataFolder("data");
@@ -189,7 +189,6 @@ function init()
 			mode = 4;
 			sumFrames = totalCounts = 0;
 			fpsData = [];
-			chart.options.data[0] = fpsData;
 		}
 		if(e.keyCode == 53){ // DEFERRED
 			mode = 5;

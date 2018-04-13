@@ -1867,6 +1867,7 @@ Renderer.prototype.renderNode = function(node, camera)
 		node._uniforms.u_numLights = LI.NUM_LIGHTS;
 		node._uniforms.u_ambient = vec3.fromValues(0.02,0.02,0.02);
 		node._uniforms.u_lightRadius = LI.LIGHT_RADIUS;
+		node._uniforms.u_specular_gloss = 1.0;
 	}
 	if(mode == 1){
 		slot++;
@@ -1877,7 +1878,6 @@ Renderer.prototype.renderNode = function(node, camera)
 	    node._uniforms.u_tileSize = LI.TILE_SIZE;
 		node._uniforms.u_screenWidth = window.innerWidth;
 		node._uniforms.u_screenHeight = window.innerHeight;
-		node._uniforms.u_specular_gloss = 1.0;
 	}
 	//END ADDED DANI
 
@@ -3343,6 +3343,7 @@ Renderer.prototype.createShaders = function()
 			uniform sampler2D u_lightPositionTexture;\
 			uniform int u_lightRadius;\
 			uniform int u_numLights;\
+			uniform float u_specular_gloss;\
 			void main() {\
 			  vec3 N = normalize(v_normal);\
 			  vec4 textureColor = texture2D(u_color_texture, v_coord);\
@@ -3362,9 +3363,9 @@ Renderer.prototype.createShaders = function()
                   vec3 vectorIncidente = normalize(v_position.xyz - aux);\
 	    		  vec3 vectorReflejado = normalize(reflect(-surfaceToLight,N));\
 				  float cosAngle = clamp(dot(vectorReflejado, V), 0.0, 1.0);\
-	    		  ks = pow(cosAngle, 1.0);\
+	    		  ks = pow(cosAngle, u_specular_gloss);\
    			    }\
-   			    vec3 Ispec =  ks * textureColor.xyz;\
+   			    vec3 Ispec = textureColor.w * ks * textureColor.xyz;\
    		        float radius = float(u_lightRadius);\
    	            float distanceToLight = length(aux - v_position.xyz);\
                 float attenuation = clamp(1.0 - (distanceToLight) / (radius), 0.0, 1.0);\
@@ -3632,6 +3633,7 @@ Renderer.prototype.createShaders = function()
 		}\
 		void main() {\
 			int targetLight = -1;\
+			int targetLightAux = -1;\
 			ivec2 pixel = ivec2(gl_FragCoord.xy);\
 			ivec2 tileIdx = pixel / u_tileSize;\
 			ivec2 pixel0 = tileIdx * u_tileSize;\
@@ -3640,6 +3642,9 @@ Renderer.prototype.createShaders = function()
 			vec3 Iamb = u_ambient * textureColor.xyz;\
 			vec3 N = normalize(v_normal);\
 			for(int i = 0; i < 8; i++){\
+				targetLightAux = 4 * (i * u_tileSize);\
+				if(targetLightAux >= u_numLights)\
+					break;\
 				for(int j = 0; j < 8; j++){\
 					targetLight = 4 * (i * u_tileSize + j);\
 					if(targetLight >= u_numLights)\
@@ -3724,6 +3729,7 @@ Renderer.prototype.createShaders = function()
 		}\
 		void main() {\
 			int targetLight = -1;\
+			int targetLightAux = -1;\
 			ivec2 pixel = ivec2(gl_FragCoord.xy);\
 			ivec2 tileIdx = pixel / u_tileSize;\
 			ivec2 pixel0 = tileIdx * u_tileSize;\
@@ -3732,6 +3738,9 @@ Renderer.prototype.createShaders = function()
 			vec3 Iamb = u_ambient * textureColor.xyz;\
 			vec3 N = normalize(v_normal);\
 			for(int i = 0; i < 16; i++){\
+				targetLightAux = 4 * (i * u_tileSize);\
+				if(targetLightAux >= u_numLights)\
+					break;\
 				for(int j = 0; j < 16; j++){\
 					targetLight = 4 * (i * u_tileSize + j);\
 					if(targetLight >= u_numLights)\
@@ -3816,6 +3825,7 @@ Renderer.prototype.createShaders = function()
 		}\
 		void main() {\
 			int targetLight = -1;\
+			int targetLightAux = -1;\
 			ivec2 pixel = ivec2(gl_FragCoord.xy);\
 			ivec2 tileIdx = pixel / u_tileSize;\
 			ivec2 pixel0 = tileIdx * u_tileSize;\
@@ -3824,6 +3834,9 @@ Renderer.prototype.createShaders = function()
 			vec3 Iamb = u_ambient * textureColor.xyz;\
 			vec3 N = normalize(v_normal);\
 			for(int i = 0; i < 16; i++){\
+				targetLightAux = 4 * (i * u_tileSize);\
+				if(targetLightAux >= u_numLights)\
+					break;\
 				for(int j = 0; j < 16; j++){\
 					targetLight = 4 * (i * u_tileSize + j);\
 					if(targetLight >= u_numLights)\

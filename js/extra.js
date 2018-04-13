@@ -1,5 +1,5 @@
 var fpsData = [];
-var chart = null;
+
 $(document).ready(function(){
 	$("#graph").sparkline(fpsData, {
 	    type: 'line',
@@ -79,7 +79,7 @@ var buildCity = function(scene){
 		mesh: "cube",
 		shader: "texture",
 		texture: "stars",
-		flags: {flip_normals: true, depth_test: true},
+		flags: {flip_normals: true, depth_test: false},
 		uniforms: {}
 	});
 	scene.root.addChild( skybox );

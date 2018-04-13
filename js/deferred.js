@@ -62,6 +62,12 @@ DF.init = function () {
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     DF.g_buffer = g_buffer;
+
+    if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
+      // Can't use framebuffer.
+      // See http://www.khronos.org/opengles/sdk/docs/man/xhtml/glCheckFramebufferStatus.xml
+      console.log("aaa");
+    }
 }
 
 DF.renderScene = function(){
