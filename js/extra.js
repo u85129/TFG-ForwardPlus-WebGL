@@ -72,18 +72,6 @@ var showMode = function(){
 }
 
 var buildCity = function(scene){
-	skybox = new RD.SceneNode({
-		position: [0,0,0],
-		scaling: [10000,10000,10000],
-		color: [1,1,1,1],
-		mesh: "cube",
-		shader: "texture",
-		texture: "stars",
-		flags: {flip_normals: true, depth_test: false},
-		uniforms: {}
-	});
-	scene.root.addChild( skybox );
-
 	var suelo = null;
 	for(var i = -7; i < 7; i++){
 		for(var j = -7; j < 5; j++){

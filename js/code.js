@@ -12,7 +12,7 @@ var runChart = true;
 function init()
 {
 	//create the rendering context
-	var context = GL.create({width: window.innerWidth, height: window.innerHeight, webgl2:false});
+	var context = GL.create({width: window.innerWidth, height: window.innerHeight, webgl2:true});
 	var renderer = new RD.Renderer(context);
 	document.body.appendChild(renderer.canvas); //attach
 
@@ -28,7 +28,7 @@ function init()
 	lights.init(16, 350);
 
 	var deferred = DF;
-	//DF.init();
+	DF.init();
 
 	//folder where stuff will be loaded	
 	renderer.setDataFolder("data");
@@ -47,10 +47,21 @@ function init()
 		renderer.loadMesh(text+i+".obj", text+i, null);
 	}
 
-
 	//create texture
 	renderer.loadTexture("stars.jpg", {temp_color:[80,120,40,255], name: "stars"}, null);
 	renderer.loadTexture("brick.jpg", {temp_color:[80,120,40,255], name: "terrainTex"}, null);
+
+	skybox = new RD.SceneNode({
+		position: [0,0,0],
+		scaling: [10000,10000,10000],
+		color: [1,1,1,1],
+		mesh: "cube",
+		shader: "texture",
+		texture: "stars",
+		flags: {flip_normals: true, depth_test: false},
+		uniforms: {}
+	});
+	scene.root.addChild( skybox );
 
 	buildCity(scene);
 	

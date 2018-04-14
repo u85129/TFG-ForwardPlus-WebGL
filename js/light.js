@@ -15,9 +15,9 @@ var lightPosition = LI.position = null;
 var buffer = quad = null;
 
 
-LI.init = function (numTiles, lightRadius) {
+LI.init = function (tileSize, lightRadius) {
     NUM_LIGHTS = LI.NUM_LIGHTS = numLights = 256;
-    TILE_SIZE = LI.TILE_SIZE = numTiles;
+    TILE_SIZE = LI.TILE_SIZE = tileSize;
     LIGHT_RADIUS = LI.LIGHT_RADIUS = lightRadius;
 
     lightPosition = LI.position = new Float32Array(NUM_LIGHTS * 3);
