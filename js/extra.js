@@ -99,7 +99,6 @@ var buildCity = function(scene){
 		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
-	console.log(gl.meshes);
 	//build10.rotate(-Math.PI/2, [1,0,0], true);
 	scene.root.addChild( build1 );
 

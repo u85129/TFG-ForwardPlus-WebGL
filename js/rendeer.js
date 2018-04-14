@@ -3432,43 +3432,44 @@ Renderer.prototype.createShaders = function()
 		}\
 	');
 	gl.shaders["fill_g_buffer"] = this._fill_g_buffer;
-
-	this._fill_g_buffer_webgl2 = new GL.Shader('\
-			#version 300 es\n\
-			precision highp float;\
-			in vec3 a_vertex;\
-			in vec3 a_normal;\
-			in vec2 a_coord;\
-			out vec4 v_position;\
-			out vec3 v_normal;\
-			out vec2 v_coord;\
-			uniform mat4 u_mvp;\
-			uniform mat4 u_model;\
-			void main() {\
-				v_coord = a_coord;\
-				v_position = (u_model * vec4(a_vertex,1.0));\
-				v_normal = (u_model * vec4(a_normal,0.0)).xyz;\
-				gl_Position = u_mvp * vec4(a_vertex,1.0);\
-			}\
-			', '#version 300 es\n\
-			precision highp float;\
-			in vec4 v_Position;\
-			in vec3 v_normal;\
-			in vec2 v_coord;\
-			uniform sampler2D u_color_texture;\
-			layout(location = 0) out vec4 color0;\
-			layout(location = 1) out vec4 color1;\
-			layout(location = 2) out vec4 color2;\
-			layout(location = 3) out vec4 color3;\
-			void main() {\
-			  vec3 N = normalize(v_normal);\
-			  color0 = v_position;\
-			  color1 = vec4(N, 1.0);\
-			  color2 = vec4(v_coord,0.0,1.0);\
-			  color3 = texture2D(u_color_texture, v_coord);\
-			}\
-	');
-	gl.shaders["fill_g_buffer_webgl2"] = this._fill_g_buffer_webgl2;
+	if(gl.webgl_version == 2){
+		this._fill_g_buffer_webgl2 = new GL.Shader('\
+				#version 300 es\n\
+				precision highp float;\
+				in vec3 a_vertex;\
+				in vec3 a_normal;\
+				in vec2 a_coord;\
+				out vec4 v_position;\
+				out vec3 v_normal;\
+				out vec2 v_coord;\
+				uniform mat4 u_mvp;\
+				uniform mat4 u_model;\
+				void main() {\
+					v_coord = a_coord;\
+					v_position = (u_model * vec4(a_vertex,1.0));\
+					v_normal = (u_model * vec4(a_normal,0.0)).xyz;\
+					gl_Position = u_mvp * vec4(a_vertex,1.0);\
+				}\
+				', '#version 300 es\n\
+				precision highp float;\
+				in vec4 v_Position;\
+				in vec3 v_normal;\
+				in vec2 v_coord;\
+				uniform sampler2D u_color_texture;\
+				layout(location = 0) out vec4 color0;\
+				layout(location = 1) out vec4 color1;\
+				layout(location = 2) out vec4 color2;\
+				layout(location = 3) out vec4 color3;\
+				void main() {\
+				  vec3 N = normalize(v_normal);\
+				  color0 = v_position;\
+				  color1 = vec4(N, 1.0);\
+				  color2 = vec4(v_coord,0.0,1.0);\
+				  color3 = texture2D(u_color_texture, v_coord);\
+				}\
+		');
+		gl.shaders["fill_g_buffer_webgl2"] = this._fill_g_buffer_webgl2;
+	}
 
 	this._show_g_buffer = new GL.Shader('\
 		precision highp float;\
