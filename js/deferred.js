@@ -35,15 +35,6 @@ DF.init = function () {
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, window.innerWidth,window.innerHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
     gl.bindTexture(gl.TEXTURE_2D, null);
 
-    DF.depthTexture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, DF.depthTexture);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, window.innerWidth,window.innerHeight, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, null);
-    gl.bindTexture(gl.TEXTURE_2D, null);
-
     DF.colorTexture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, DF.colorTexture);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
@@ -53,6 +44,14 @@ DF.init = function () {
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, window.innerWidth,window.innerHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
     gl.bindTexture(gl.TEXTURE_2D, null);
 
+    DF.depthTexture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, DF.depthTexture);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT16, window.innerWidth,window.innerHeight, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, null);
+    gl.bindTexture(gl.TEXTURE_2D, null);
 
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, DF.positionTexture, 0);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+1, gl.TEXTURE_2D, DF.normalTexture, 0);
@@ -60,14 +59,15 @@ DF.init = function () {
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+3, gl.TEXTURE_2D, DF.colorTexture, 0);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, DF.depthTexture, 0);
 
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    DF.g_buffer = g_buffer;
 
     if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
       // Can't use framebuffer.
       // See http://www.khronos.org/opengles/sdk/docs/man/xhtml/glCheckFramebufferStatus.xml
-      console.log("aaa");
+      console.log(gl.checkFramebufferStatus(gl.FRAMEBUFFER));
     }
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    DF.g_buffer = g_buffer;
 }
 
 DF.renderScene = function(){

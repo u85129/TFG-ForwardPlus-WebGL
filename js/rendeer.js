@@ -3400,38 +3400,40 @@ Renderer.prototype.createShaders = function()
 	');
 	gl.shaders["light_debug"] = this._light_debug;
 
-	this._fill_g_buffer = new GL.Shader('\
-		precision highp float;\
-		attribute vec3 a_vertex;\
-		attribute vec3 a_normal;\
-		attribute vec2 a_coord;\
-		varying vec2 v_coord;\
-		varying vec3 v_normal;\
-		varying vec4 v_position;\
-		uniform mat4 u_mvp;\
-		uniform mat4 u_model;\
-		void main() {\n\
-			v_coord = a_coord;\n\
-			v_position = u_model * vec4(a_vertex,1);\
-			v_normal = (u_model * vec4(a_normal,0.0)).xyz;\n\
-			gl_Position = u_mvp * vec4(a_vertex,1.0);\n\
-		}\
-		','\
-		#extension GL_EXT_draw_buffers : require \n\
-		precision mediump float;\
-		varying vec2 v_coord;\
-		varying vec3 v_normal;\
-		varying vec4 v_position;\
-		uniform sampler2D u_color_texture;\
-		void main() {\
-			vec3 N = normalize(v_normal);\
-			gl_FragData[0] = v_position;\
-			gl_FragData[1] = vec4(N, 1.0);\
-			gl_FragData[2] = vec4(v_coord,0.0,1.0);\
-			gl_FragData[3] = texture2D(u_color_texture, v_coord);\
-		}\
-	');
-	gl.shaders["fill_g_buffer"] = this._fill_g_buffer;
+	if(gl.webgl_version == 1){
+		this._fill_g_buffer = new GL.Shader('\
+			precision highp float;\
+			attribute vec3 a_vertex;\
+			attribute vec3 a_normal;\
+			attribute vec2 a_coord;\
+			varying vec2 v_coord;\
+			varying vec3 v_normal;\
+			varying vec4 v_position;\
+			uniform mat4 u_mvp;\
+			uniform mat4 u_model;\
+			void main() {\n\
+				v_coord = a_coord;\n\
+				v_position = u_model * vec4(a_vertex,1);\
+				v_normal = (u_model * vec4(a_normal,0.0)).xyz;\n\
+				gl_Position = u_mvp * vec4(a_vertex,1.0);\n\
+			}\
+			','\
+			#extension GL_EXT_draw_buffers : require \n\
+			precision mediump float;\
+			varying vec2 v_coord;\
+			varying vec3 v_normal;\
+			varying vec4 v_position;\
+			uniform sampler2D u_color_texture;\
+			void main() {\
+				vec3 N = normalize(v_normal);\
+				gl_FragData[0] = v_position;\
+				gl_FragData[1] = vec4(N, 1.0);\
+				gl_FragData[2] = vec4(v_coord,0.0,1.0);\
+				gl_FragData[3] = texture2D(u_color_texture, v_coord);\
+			}\
+		');
+		gl.shaders["fill_g_buffer"] = this._fill_g_buffer;
+	}
 	if(gl.webgl_version == 2){
 		this._fill_g_buffer_webgl2 = new GL.Shader('\
 				#version 300 es\n\
@@ -3452,7 +3454,7 @@ Renderer.prototype.createShaders = function()
 				}\
 				', '#version 300 es\n\
 				precision highp float;\
-				in vec4 v_Position;\
+				in vec4 v_position;\
 				in vec3 v_normal;\
 				in vec2 v_coord;\
 				uniform sampler2D u_color_texture;\
@@ -3465,7 +3467,7 @@ Renderer.prototype.createShaders = function()
 				  color0 = v_position;\
 				  color1 = vec4(N, 1.0);\
 				  color2 = vec4(v_coord,0.0,1.0);\
-				  color3 = texture2D(u_color_texture, v_coord);\
+				  color3 = texture(u_color_texture, v_coord);\
 				}\
 		');
 		gl.shaders["fill_g_buffer_webgl2"] = this._fill_g_buffer_webgl2;
