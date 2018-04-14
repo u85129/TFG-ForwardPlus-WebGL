@@ -12,7 +12,7 @@ var runChart = true;
 function init()
 {
 	//create the rendering context
-	var context = GL.create({width: window.innerWidth, height: window.innerHeight, webgl2:false});
+	var context = GL.create({width: window.innerWidth, height: window.innerHeight, webgl2:true});
 	var renderer = new RD.Renderer(context);
 	document.body.appendChild(renderer.canvas); //attach
 
@@ -70,6 +70,8 @@ function init()
 	camera.perspective( 45, gl.canvas.width / gl.canvas.height, 1, 10000 );
 	camera.lookAt( [0,50,100],[0,0,0],[0,1,0] );
 	
+console.log(gl.webgl_version);
+
 	//global settings
 	var bg_color = vec4.fromValues(0.0,0.0,0.0,1);
 	var u_color = vec4.fromValues(1.0,1.0,1.0,1);
