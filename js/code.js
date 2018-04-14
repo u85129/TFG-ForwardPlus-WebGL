@@ -12,7 +12,7 @@ var runChart = true;
 function init()
 {
 	//create the rendering context
-	var context = GL.create({width: window.innerWidth, height: window.innerHeight, webgl2:true});
+	var context = GL.create({width: window.innerWidth, height: window.innerHeight, webgl2:false});
 	var renderer = new RD.Renderer(context);
 	document.body.appendChild(renderer.canvas); //attach
 
