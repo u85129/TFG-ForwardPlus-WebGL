@@ -12,7 +12,7 @@ var runChart = true;
 function init()
 {
 	//create the rendering context
-	var context = GL.create({width: window.innerWidth, height: window.innerHeight, webgl2:true});
+	var context = GL.create({width: window.innerWidth, height: window.innerHeight, webgl2:false});
 	var renderer = new RD.Renderer(context);
 	document.body.appendChild(renderer.canvas); //attach
 
@@ -49,12 +49,12 @@ function init()
 
 	skybox = new RD.SceneNode({
 		position: [0,0,0],
-		scaling: [10000,10000,10000],
+		scaling: [20000,20000,20000],
 		color: [1,1,1,1],
 		mesh: "cube",
 		shader: "texture",
 		texture: "stars",
-		flags: {flip_normals: true, depth_test: false},
+		flags: {flip_normals: false, depth_test: true},
 		uniforms: {}
 	});
 	scene.root.addChild( skybox );
@@ -91,26 +91,44 @@ console.log(gl.webgl_version);
 				renderer.render(scene, camera);
 				break;
 			case 5: // DEFERRED
+				gl.bindFramebuffer(gl.FRAMEBUFFER, DF.g_buffer);
+				renderer.clear(bg_color);
+				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 				renderer.render(scene, camera);
-				DF.renderScene();
+				DF.renderScene(camera);
 				break;
 			case 6: //DEFERRED POSITION
+				gl.bindFramebuffer(gl.FRAMEBUFFER, DF.g_buffer);
+				renderer.clear(bg_color);
+				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 				renderer.render(scene, camera);
 				DF.renderBuffer(0);
 				break;
 			case 7: //DEFERRED NORMAL
+				gl.bindFramebuffer(gl.FRAMEBUFFER, DF.g_buffer);
+				renderer.clear(bg_color);
+				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 				renderer.render(scene, camera);
 				DF.renderBuffer(1);
 				break;
 			case 8: //DEFERRED UV
+				gl.bindFramebuffer(gl.FRAMEBUFFER, DF.g_buffer);
+				renderer.clear(bg_color);
+				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 				renderer.render(scene, camera);
 				DF.renderBuffer(2);
 				break;
 			case 9: //DEFERRED COLOR
+				gl.bindFramebuffer(gl.FRAMEBUFFER, DF.g_buffer);
+				renderer.clear(bg_color);
+				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 				renderer.render(scene, camera);
 				DF.renderBuffer(3);
 				break;
 			case 10: //DEFERRED DEPTH
+				gl.bindFramebuffer(gl.FRAMEBUFFER, DF.g_buffer);
+				renderer.clear(bg_color);
+				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 				renderer.render(scene, camera);
 				DF.renderBuffer(4);
 				break;

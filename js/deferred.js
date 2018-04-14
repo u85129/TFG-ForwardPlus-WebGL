@@ -50,35 +50,69 @@ DF.init = function () {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT16, window.innerWidth,window.innerHeight, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, null);
+    if(gl.webgl_version == 2){
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT16, window.innerWidth,window.innerHeight, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, null);
+    }else{
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, window.innerWidth,window.innerHeight, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, null);
+    }
     gl.bindTexture(gl.TEXTURE_2D, null);
+
+    gl.framebufferRenderbuffer( gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, null );
+    gl.framebufferRenderbuffer( gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, null );
+
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, DF.depthTexture, 0);
 
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, DF.positionTexture, 0);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+1, gl.TEXTURE_2D, DF.normalTexture, 0);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+2, gl.TEXTURE_2D, DF.uvTexture, 0);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+3, gl.TEXTURE_2D, DF.colorTexture, 0);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, DF.depthTexture, 0);
 
-
-    if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
-      // Can't use framebuffer.
-      // See http://www.khronos.org/opengles/sdk/docs/man/xhtml/glCheckFramebufferStatus.xml
-      console.log(gl.checkFramebufferStatus(gl.FRAMEBUFFER));
-    }
+    if(gl.webgl_version == 1)
+        gl.getExtension('WEBGL_draw_buffers').drawBuffersWEBGL([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT0+1, gl.COLOR_ATTACHMENT0+2, gl.COLOR_ATTACHMENT0+3])
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     DF.g_buffer = g_buffer;
 }
 
-DF.renderScene = function(){
+DF.renderScene = function(camera){
+    var shader = gl.shaders["deferred_shader"];
+    
+    gl.useProgram(shader.program);
 
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture( gl.TEXTURE_2D, DF.colorTexture );
+    gl.activeTexture(gl.TEXTURE0 + 1);
+    gl.bindTexture( gl.TEXTURE_2D, DF.normalTexture );
+    gl.activeTexture(gl.TEXTURE0 + 2);
+    gl.bindTexture(gl.TEXTURE_2D, LI.positionTexture);
+    gl.activeTexture(gl.TEXTURE0 + 3);
+    gl.bindTexture( gl.TEXTURE_2D, DF.positionTexture );
+    gl.activeTexture(gl.TEXTURE0 + 4);
+    gl.bindTexture( gl.TEXTURE_2D, DF.uvTexture );
+    gl.activeTexture(gl.TEXTURE0 + 5);
+    gl.bindTexture( gl.TEXTURE_2D, DF.depthTexture );
+
+
+    shader.uniforms({
+        u_color_texture : 0,
+        u_normal_texture : 1,
+        u_lightPositionTexture : 2,
+        u_position_texture : 3,
+        u_screenWidth : window.innerWidth,
+        u_screenHeight : window.innerHeight,
+        u_numLights: LI.NUM_LIGHTS,
+        u_ambient : vec3.fromValues(0.02,0.02,0.02),
+        u_lightRadius : LI.LIGHT_RADIUS,
+        u_eye: camera.position
+    });
+
+    shader.draw(quad);
 }
 
 DF.renderBuffer = function(target){
     var shader = gl.shaders["show_g_buffer"];
     
     gl.useProgram(shader.program);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     gl.activeTexture(gl.TEXTURE0);
     if(target == 0){
