@@ -26,15 +26,6 @@ DF.init = function () {
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, window.innerWidth,window.innerHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
     gl.bindTexture(gl.TEXTURE_2D, null);
 
-    DF.uvTexture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, DF.uvTexture);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, window.innerWidth,window.innerHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-    gl.bindTexture(gl.TEXTURE_2D, null);
-
     DF.colorTexture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, DF.colorTexture);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
@@ -57,18 +48,15 @@ DF.init = function () {
     }
     gl.bindTexture(gl.TEXTURE_2D, null);
 
-    gl.framebufferRenderbuffer( gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, null );
-    gl.framebufferRenderbuffer( gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, null );
-
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, DF.depthTexture, 0);
-
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, DF.positionTexture, 0);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, DF.colorTexture, 0);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+1, gl.TEXTURE_2D, DF.normalTexture, 0);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+2, gl.TEXTURE_2D, DF.uvTexture, 0);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+3, gl.TEXTURE_2D, DF.colorTexture, 0);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+2, gl.TEXTURE_2D, DF.positionTexture, 0);
 
     if(gl.webgl_version == 1)
-        gl.getExtension('WEBGL_draw_buffers').drawBuffersWEBGL([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT0+1, gl.COLOR_ATTACHMENT0+2, gl.COLOR_ATTACHMENT0+3])
+        gl.getExtension('WEBGL_draw_buffers').drawBuffersWEBGL([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT0+1, gl.COLOR_ATTACHMENT0+2])
+    else
+        gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT0+1, gl.COLOR_ATTACHMENT0+2]);
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     DF.g_buffer = g_buffer;
@@ -88,8 +76,6 @@ DF.renderScene = function(camera){
     gl.activeTexture(gl.TEXTURE0 + 3);
     gl.bindTexture( gl.TEXTURE_2D, DF.positionTexture );
     gl.activeTexture(gl.TEXTURE0 + 4);
-    gl.bindTexture( gl.TEXTURE_2D, DF.uvTexture );
-    gl.activeTexture(gl.TEXTURE0 + 5);
     gl.bindTexture( gl.TEXTURE_2D, DF.depthTexture );
 
 
@@ -116,14 +102,12 @@ DF.renderBuffer = function(target){
 
     gl.activeTexture(gl.TEXTURE0);
     if(target == 0){
-        gl.bindTexture( gl.TEXTURE_2D, DF.positionTexture );
+        gl.bindTexture( gl.TEXTURE_2D, DF.colorTexture );
     }else if(target == 1){
         gl.bindTexture( gl.TEXTURE_2D, DF.normalTexture );
     }else if(target == 2){
-        gl.bindTexture( gl.TEXTURE_2D, DF.uvTexture );
+        gl.bindTexture( gl.TEXTURE_2D, DF.positionTexture );
     }else if(target == 3){
-        gl.bindTexture( gl.TEXTURE_2D, DF.colorTexture );
-    }else if(target == 4){
         gl.bindTexture( gl.TEXTURE_2D, DF.depthTexture );
     }    
 
@@ -135,6 +119,12 @@ DF.renderBuffer = function(target){
 
     shader.draw(quad);
 
+}
+
+DF.clearFrameBuffer = function(renderer, bg_color){
+    gl.bindFramebuffer(gl.FRAMEBUFFER, DF.g_buffer);
+    renderer.clear(bg_color);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 }
 
 

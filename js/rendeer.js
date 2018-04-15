@@ -1891,8 +1891,6 @@ Renderer.prototype.renderNode = function(node, camera)
 		node.onShaderUniforms(this, shader);
 	//ADDED BY DANI
 	if(mode >= 5){
-		if(node.texture == 'stars')
-			return;
 		gl.bindFramebuffer(gl.FRAMEBUFFER, DF.g_buffer);
 	}
 	if(mesh.info != undefined){
@@ -3486,10 +3484,9 @@ Renderer.prototype.createShaders = function()
 			uniform sampler2D u_color_texture;\
 			void main() {\
 				vec3 N = normalize(v_normal);\
-				gl_FragData[0] = v_position;\
+				gl_FragData[0] = texture2D(u_color_texture, v_coord);;\
 				gl_FragData[1] = vec4(N, 1.0);\
-				gl_FragData[2] = vec4(v_coord,0.0,1.0);\
-				gl_FragData[3] = texture2D(u_color_texture, v_coord);\
+				gl_FragData[2] = v_position;\
 			}\
 		');
 		gl.shaders["fill_g_buffer"] = this._fill_g_buffer;
@@ -3521,13 +3518,11 @@ Renderer.prototype.createShaders = function()
 				layout(location = 0) out vec4 color0;\
 				layout(location = 1) out vec4 color1;\
 				layout(location = 2) out vec4 color2;\
-				layout(location = 3) out vec4 color3;\
 				void main() {\
 				  vec3 N = normalize(v_normal);\
-				  color0 = v_position;\
+				  color0 = texture(u_color_texture, v_coord);\
 				  color1 = vec4(N, 1.0);\
-				  color2 = vec4(v_coord,0.0,1.0);\
-				  color3 = texture(u_color_texture, v_coord);\
+				  color2 = v_position;\
 				}\
 		');
 		gl.shaders["fill_g_buffer_webgl2"] = this._fill_g_buffer_webgl2;
@@ -3549,7 +3544,7 @@ Renderer.prototype.createShaders = function()
 		void main() {\
 			vec2 uv = (gl_FragCoord.xy) / vec2(u_screenWidth, u_screenHeight);\
     		vec4 color = texture2D(u_buffer, uv);\
-			gl_FragColor = vec4(color);\
+			gl_FragColor = vec4(color.x,0.0,0.0,1.0);\
 		}\
 	');
 	gl.shaders["show_g_buffer"] = this._show_g_buffer;

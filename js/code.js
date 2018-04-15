@@ -12,13 +12,14 @@ var runChart = true;
 function init()
 {
 	//create the rendering context
-	var context = GL.create({width: window.innerWidth, height: window.innerHeight, webgl2:false});
+	var context = GL.create({width: window.innerWidth, height: window.innerHeight, webgl2:true});
 	var renderer = new RD.Renderer(context);
 	document.body.appendChild(renderer.canvas); //attach
 
 	//create a scene
 	scene = new RD.Scene();
-
+	console.log(gl.extensions["WEBGL_depth_texture"]);
+	
 	//create lights
 	var lights = LI;
 	lights.init(16, 350);
@@ -49,12 +50,12 @@ function init()
 
 	skybox = new RD.SceneNode({
 		position: [0,0,0],
-		scaling: [20000,20000,20000],
+		scaling: [10000,10000,10000],
 		color: [1,1,1,1],
 		mesh: "cube",
 		shader: "texture",
 		texture: "stars",
-		flags: {flip_normals: false, depth_test: true},
+		flags: {flip_normals: true, depth_test: false},
 		uniforms: {}
 	});
 	scene.root.addChild( skybox );
@@ -66,8 +67,6 @@ function init()
 	camera.perspective( 45, gl.canvas.width / gl.canvas.height, 1, 10000 );
 	camera.lookAt( [0,50,100],[0,0,0],[0,1,0] );
 	
-console.log(gl.webgl_version);
-
 	//global settings
 	var bg_color = vec4.fromValues(0.0,0.0,0.0,1);
 	var u_color = vec4.fromValues(1.0,1.0,1.0,1);
@@ -91,46 +90,29 @@ console.log(gl.webgl_version);
 				renderer.render(scene, camera);
 				break;
 			case 5: // DEFERRED
-				gl.bindFramebuffer(gl.FRAMEBUFFER, DF.g_buffer);
-				renderer.clear(bg_color);
-				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+				DF.clearFrameBuffer(renderer, bg_color);
 				renderer.render(scene, camera);
 				DF.renderScene(camera);
 				break;
-			case 6: //DEFERRED POSITION
-				gl.bindFramebuffer(gl.FRAMEBUFFER, DF.g_buffer);
-				renderer.clear(bg_color);
-				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+			case 6: //DEFERRED COLOR
+				DF.clearFrameBuffer(renderer, bg_color);
 				renderer.render(scene, camera);
 				DF.renderBuffer(0);
 				break;
 			case 7: //DEFERRED NORMAL
-				gl.bindFramebuffer(gl.FRAMEBUFFER, DF.g_buffer);
-				renderer.clear(bg_color);
-				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+				DF.clearFrameBuffer(renderer, bg_color);
 				renderer.render(scene, camera);
 				DF.renderBuffer(1);
 				break;
-			case 8: //DEFERRED UV
-				gl.bindFramebuffer(gl.FRAMEBUFFER, DF.g_buffer);
-				renderer.clear(bg_color);
-				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+			case 8: //DEFERRED POSITION
+				DF.clearFrameBuffer(renderer, bg_color);
 				renderer.render(scene, camera);
 				DF.renderBuffer(2);
 				break;
-			case 9: //DEFERRED COLOR
-				gl.bindFramebuffer(gl.FRAMEBUFFER, DF.g_buffer);
-				renderer.clear(bg_color);
-				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+			case 9: //DEFERRED DEPTH
+				DF.clearFrameBuffer(renderer, bg_color);
 				renderer.render(scene, camera);
 				DF.renderBuffer(3);
-				break;
-			case 10: //DEFERRED DEPTH
-				gl.bindFramebuffer(gl.FRAMEBUFFER, DF.g_buffer);
-				renderer.clear(bg_color);
-				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-				renderer.render(scene, camera);
-				DF.renderBuffer(4);
 				break;
 		}
 		if(debuglight)
@@ -223,7 +205,7 @@ console.log(gl.webgl_version);
 			sumFrames = totalCounts = 0;
 			fpsData = [];
 		}
-		if(e.keyCode == 54){ // DEFERRED POSITION
+		if(e.keyCode == 54){ // DEFERRED COLOR
 			mode = 6;
 			sumFrames = totalCounts = 0;
 			fpsData = [];
@@ -233,20 +215,20 @@ console.log(gl.webgl_version);
 			sumFrames = totalCounts = 0;
 			fpsData = [];
 		}
-		if(e.keyCode == 56){ // DEFERRED UV
+		if(e.keyCode == 56){ // DEFERRED POSITION
 			mode = 8;
 			sumFrames = totalCounts = 0;
 			fpsData = [];
 		}
-		if(e.keyCode == 57){ // DEFERRED COLOR
+		if(e.keyCode == 57){ // DEFERRED DEPTH
 			mode = 9;
 			sumFrames = totalCounts = 0;
 			fpsData = [];
 		}
 		if(e.keyCode == 48){ // DEFERRED DEPTH
-			mode = 10;
+			/*mode = 10;
 			sumFrames = totalCounts = 0;
-			fpsData = [];
+			fpsData = [];*/
 		}
 		if(e.keyCode == 109){ // -
 			LI.LIGHT_RADIUS -= 10;
