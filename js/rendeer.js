@@ -3397,18 +3397,27 @@ Renderer.prototype.createShaders = function()
 			uniform sampler2D u_color_texture;\
 			uniform sampler2D u_normal_texture;\
 			uniform sampler2D u_lightPositionTexture;\
-			uniform sampler2D u_position_texture;\
+			uniform sampler2D u_depth_texture;\
 			uniform int u_lightRadius;\
 			uniform int u_numLights;\
 			uniform vec3 u_ambient;\
 			uniform int u_screenWidth;\
 			uniform int u_screenHeight;\
 			uniform vec3 u_eye;\
+			uniform mat4 u_invp;\
 			void main() {\
 			  vec2 uv = (gl_FragCoord.xy) / vec2(u_screenWidth, u_screenHeight);\
+			  vec2 ndc = uv * 2.0 - vec2(1.0);\
 			  vec4 textureColor = texture2D(u_color_texture, uv);\
-			  vec3 position = texture2D(u_position_texture, uv).xyz;\
+			  float depth = texture2D(u_depth_texture, uv).x;\
+			  if(depth >= 1.0) return;\
+				depth = depth * 2.0 - 1.0;\
+			  vec4 ndcPosition = vec4(ndc.x, ndc.y, depth, 1.0);\
+			  vec4 aux = u_invp * ndcPosition;\
+			  vec3 position = vec3(aux.x/aux.w, aux.y/aux.w, aux.z/aux.w);\
 			  vec3 N = texture2D(u_normal_texture, uv).xyz;\
+			  N = N * 2.0 - vec3(1.0);\
+			  N = normalize(N);\
 			  vec3 finalColor;\
 			  vec3 Iamb = u_ambient * textureColor.xyz;\
 			  for (int i = 0; i < 2048; i++)\
@@ -3485,8 +3494,7 @@ Renderer.prototype.createShaders = function()
 			void main() {\
 				vec3 N = normalize(v_normal);\
 				gl_FragData[0] = texture2D(u_color_texture, v_coord);;\
-				gl_FragData[1] = vec4(N, 1.0);\
-				gl_FragData[2] = v_position;\
+				gl_FragData[1] = vec4(N * 0.5 + vec3(0.5), 0.0);\
 			}\
 		');
 		gl.shaders["fill_g_buffer"] = this._fill_g_buffer;
@@ -3517,12 +3525,10 @@ Renderer.prototype.createShaders = function()
 				uniform sampler2D u_color_texture;\
 				layout(location = 0) out vec4 color0;\
 				layout(location = 1) out vec4 color1;\
-				layout(location = 2) out vec4 color2;\
 				void main() {\
 				  vec3 N = normalize(v_normal);\
 				  color0 = texture(u_color_texture, v_coord);\
-				  color1 = vec4(N, 1.0);\
-				  color2 = v_position;\
+				  color1 = vec4(N * 0.5 + vec3(0.5), 0.0);\
 				}\
 		');
 		gl.shaders["fill_g_buffer_webgl2"] = this._fill_g_buffer_webgl2;
@@ -3541,10 +3547,16 @@ Renderer.prototype.createShaders = function()
 		uniform int u_screenWidth;\
 		uniform int u_screenHeight;\
 		uniform sampler2D u_buffer;\
+		uniform bool u_depth;\
 		void main() {\
 			vec2 uv = (gl_FragCoord.xy) / vec2(u_screenWidth, u_screenHeight);\
     		vec4 color = texture2D(u_buffer, uv);\
-			gl_FragColor = vec4(color.x,0.0,0.0,1.0);\
+    		if(u_depth){\
+    			float value = (1.0 - color.x) ;\
+    			gl_FragColor = vec4(value, value, value, 1.0);\
+    		}else{\
+    			gl_FragColor = vec4(color);\
+    		}\
 		}\
 	');
 	gl.shaders["show_g_buffer"] = this._show_g_buffer;

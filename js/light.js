@@ -25,21 +25,21 @@ LI.init = function (tileSize, lightRadius) {
     for(var i = 0; i < 52; i++){
         // pos
         if(i < 26){
-            LI.position[i*3] = -3220+Math.floor(i/2)*500;
-            LI.position[i*3 + 1] = 100 ;
-            LI.position[i*3 + 2] = -2450+i%2*500;
+            LI.position[i*3] = -322+Math.floor(i/2)*50;
+            LI.position[i*3 + 1] = 10 ;
+            LI.position[i*3 + 2] = -245+i%2*50;
         }else{
-            LI.position[i*3] = -3220+Math.floor((i-26)/2)*500;
-            LI.position[i*3 + 1] = 100;
-            LI.position[i*3 + 2] = 75+i%2*500;
+            LI.position[i*3] = -322+Math.floor((i-26)/2)*50;
+            LI.position[i*3 + 1] = 10;
+            LI.position[i*3 + 2] = 7.5+i%2*50;
         }
     }
 
     for(var i = 52; i < numLights; i++){
         // pos
-        LI.position[i*3] = Math.random() * 6000 - 3000;
-        LI.position[i*3 + 1] = Math.random() * 1500;
-        LI.position[i*3 + 2] = Math.random() * 4500 - 3000;
+        LI.position[i*3] = Math.random() * 600 - 300;
+        LI.position[i*3 + 1] = Math.random() * 150;
+        LI.position[i*3 + 2] = Math.random() * 450 - 300;
     }
 
 

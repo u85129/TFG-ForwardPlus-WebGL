@@ -2,7 +2,7 @@ var scene = null;
 
 var moveup = movedown = moveleft = moveright = false;
 var debuglight = true;
-var speed = 200;
+var speed = 20;
 var multiplier = 1;
 var fps = mediaFps = totalCounts = sumFrames = 0;
 var mode = 1;
@@ -18,11 +18,10 @@ function init()
 
 	//create a scene
 	scene = new RD.Scene();
-	console.log(gl.extensions["WEBGL_depth_texture"]);
-	
+
 	//create lights
 	var lights = LI;
-	lights.init(16, 350);
+	lights.init(16, 35);
 
 	var deferred = DF;
 	DF.init();
@@ -50,7 +49,7 @@ function init()
 
 	skybox = new RD.SceneNode({
 		position: [0,0,0],
-		scaling: [10000,10000,10000],
+		scaling: [1000,1000,1000],
 		color: [1,1,1,1],
 		mesh: "cube",
 		shader: "texture",
@@ -64,7 +63,7 @@ function init()
 	
 	//create camera
 	var camera = new RD.Camera();
-	camera.perspective( 45, gl.canvas.width / gl.canvas.height, 1, 10000 );
+	camera.perspective( 45, gl.canvas.width / gl.canvas.height, 1, 1000 );
 	camera.lookAt( [0,50,100],[0,0,0],[0,1,0] );
 	
 	//global settings
@@ -104,15 +103,10 @@ function init()
 				renderer.render(scene, camera);
 				DF.renderBuffer(1);
 				break;
-			case 8: //DEFERRED POSITION
+			case 8: //DEFERRED DEPTH
 				DF.clearFrameBuffer(renderer, bg_color);
 				renderer.render(scene, camera);
 				DF.renderBuffer(2);
-				break;
-			case 9: //DEFERRED DEPTH
-				DF.clearFrameBuffer(renderer, bg_color);
-				renderer.render(scene, camera);
-				DF.renderBuffer(3);
 				break;
 		}
 		if(debuglight)
@@ -215,20 +209,10 @@ function init()
 			sumFrames = totalCounts = 0;
 			fpsData = [];
 		}
-		if(e.keyCode == 56){ // DEFERRED POSITION
+		if(e.keyCode == 56){ // DEFERRED DEPTH
 			mode = 8;
 			sumFrames = totalCounts = 0;
 			fpsData = [];
-		}
-		if(e.keyCode == 57){ // DEFERRED DEPTH
-			mode = 9;
-			sumFrames = totalCounts = 0;
-			fpsData = [];
-		}
-		if(e.keyCode == 48){ // DEFERRED DEPTH
-			/*mode = 10;
-			sumFrames = totalCounts = 0;
-			fpsData = [];*/
 		}
 		if(e.keyCode == 109){ // -
 			LI.LIGHT_RADIUS -= 10;

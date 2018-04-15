@@ -60,15 +60,11 @@ var showMode = function(){
 	if(mode == 5)
 		document.getElementById("mode").innerHTML = 'Deferred';
 	if(mode == 6)
-		document.getElementById("mode").innerHTML = 'Deferred: Position Texture';
+		document.getElementById("mode").innerHTML = 'Deferred: Color Texture';
 	if(mode == 7)
 		document.getElementById("mode").innerHTML = 'Deferred: Normal Texture';
 	if(mode == 8)
-		document.getElementById("mode").innerHTML = 'Deferred: UV texture';
-	if(mode == 9)
-		document.getElementById("mode").innerHTML = 'Deferred: Color texture';
-	if(mode == 10)
-		document.getElementById("mode").innerHTML = 'Deferred: Depth Texture';
+		document.getElementById("mode").innerHTML = 'Deferred: Depth texture';
 }
 
 var buildCity = function(scene){
@@ -76,8 +72,8 @@ var buildCity = function(scene){
 	for(var i = -7; i < 7; i++){
 		for(var j = -7; j < 5; j++){
 			suelo = new RD.SceneNode({
-				position: [0+i*500,0,0+j*500],
-				scaling: [500,500,500],
+				position: [0+i*50,0,0+j*50],
+				scaling: [50,50,50],
 				color: [1,1,1,1],
 				mesh: "planeXZ",
 				shader: "texture",
@@ -90,8 +86,8 @@ var buildCity = function(scene){
 	}
 
 	var build1 = new RD.SceneNode({
-		position: [-3000,0,-3000],
-		scaling: [40,40,40],
+		position: [-300,0,-300],
+		scaling: [4,4,4],
 		color: [1,1,1,1],
 		mesh: "Building_A14",
 		shader: "texture",
@@ -103,8 +99,8 @@ var buildCity = function(scene){
 	scene.root.addChild( build1 );
 
 	var build2 = new RD.SceneNode({
-		position: [-1800,0,-3000],
-		scaling: [40,40,40],
+		position: [-180,0,-300],
+		scaling: [4,4,4],
 		color: [1,1,1,1],
 		mesh: "Building_A11",
 		shader: "texture",
@@ -115,8 +111,8 @@ var buildCity = function(scene){
 	scene.root.addChild( build2 );
 
 	var build3 = new RD.SceneNode({
-		position: [-800,0,-3000],
-		scaling: [40,40,40],
+		position: [-80,0,-300],
+		scaling: [4,4,4],
 		color: [1,1,1,1],
 		mesh: "Building_A11",
 		shader: "texture",
@@ -127,8 +123,8 @@ var buildCity = function(scene){
 	scene.root.addChild( build3 );
 
 	var build4 = new RD.SceneNode({
-		position: [500,0,-2900],
-		scaling: [40,40,40],
+		position: [50,0,-290],
+		scaling: [4,4,4],
 		color: [1,1,1,1],
 		mesh: "Building_A01",
 		shader: "texture",
@@ -139,8 +135,8 @@ var buildCity = function(scene){
 	scene.root.addChild( build4 );
 
 	var build5 = new RD.SceneNode({
-		position: [1200,0,-2900],
-		scaling: [40,40,40],
+		position: [120,0,-290],
+		scaling: [4,4,4],
 		color: [1,1,1,1],
 		mesh: "Building_A05",
 		shader: "texture",
@@ -151,8 +147,8 @@ var buildCity = function(scene){
 	scene.root.addChild( build5 );
 
 	var build6 = new RD.SceneNode({
-		position: [1900,0,-2900],
-		scaling: [40,40,40],
+		position: [190,0,-290],
+		scaling: [4,4,4],
 		color: [1,1,1,1],
 		mesh: "Building_A05",
 		shader: "texture",
@@ -163,8 +159,8 @@ var buildCity = function(scene){
 	scene.root.addChild( build6 );
 
 	var build7 = new RD.SceneNode({
-		position: [2650,0,-2800],
-		scaling: [40,40,40],
+		position: [265,0,-280],
+		scaling: [4,4,4],
 		color: [1,1,1,1],
 		mesh: "Building_A02",
 		shader: "texture",
@@ -175,8 +171,8 @@ var buildCity = function(scene){
 	scene.root.addChild( build7 );
 
 	var build8 = new RD.SceneNode({
-		position: [3000,0,-1400],
-		scaling: [40,40,40],
+		position: [300,0,-140],
+		scaling: [4,4,4],
 		color: [1,1,1,1],
 		mesh: "Building_A14",
 		shader: "texture",
@@ -188,8 +184,8 @@ var buildCity = function(scene){
 	scene.root.addChild( build8 );
 
 	var build9 = new RD.SceneNode({
-		position: [1800,0,-1400],
-		scaling: [40,40,40],
+		position: [180,0,-140],
+		scaling: [4,4,4],
 		color: [1,1,1,1],
 		mesh: "Building_A11",
 		shader: "texture",
@@ -201,8 +197,8 @@ var buildCity = function(scene){
 	scene.root.addChild( build9 );
 
 	var build10 = new RD.SceneNode({
-		position: [800,0,-1400],
-		scaling: [40,40,40],
+		position: [80,0,-140],
+		scaling: [4,4,4],
 		color: [1,1,1,1],
 		mesh: "Building_A11",
 		shader: "texture",
@@ -214,8 +210,8 @@ var buildCity = function(scene){
 	scene.root.addChild( build10 );
 
 	var build11 = new RD.SceneNode({
-		position: [-500,0,-1500],
-		scaling: [40,40,40],
+		position: [-50,0,-150],
+		scaling: [4,4,4],
 		color: [1,1,1,1],
 		mesh: "Building_A01",
 		shader: "texture",
@@ -227,8 +223,8 @@ var buildCity = function(scene){
 	scene.root.addChild( build11 );
 
 	var build12 = new RD.SceneNode({
-		position: [-1200,0,-1500],
-		scaling: [40,40,40],
+		position: [-120,0,-150],
+		scaling: [4,4,4],
 		color: [1,1,1,1],
 		mesh: "Building_A05",
 		shader: "texture",
@@ -240,8 +236,8 @@ var buildCity = function(scene){
 	scene.root.addChild( build12 );
 
 	var build13 = new RD.SceneNode({
-		position: [-1900,0,-1500],
-		scaling: [40,40,40],
+		position: [-190,0,-150],
+		scaling: [4,4,4],
 		color: [1,1,1,1],
 		mesh: "Building_A05",
 		shader: "texture",
@@ -253,8 +249,8 @@ var buildCity = function(scene){
 	scene.root.addChild( build13 );
 
 	var build14 = new RD.SceneNode({
-		position: [-2650,0,-1600],
-		scaling: [40,40,40],
+		position: [-265,0,-160],
+		scaling: [4,4,4],
 		color: [1,1,1,1],
 		mesh: "Building_A02",
 		shader: "texture",
@@ -269,8 +265,8 @@ var buildCity = function(scene){
 	for(var i = 0; i < 13; i++){
 		for(var j = 0; j < 2; j++){
 			lamp = new RD.SceneNode({
-				position: [-3200+i*500,0,-2450+j*500],
-				scaling: [10,10,10],
+				position: [-320+i*50,0,-245+j*50],
+				scaling: [1,1,1],
 				color: [1,1,1,1],
 				mesh: "lamp",
 				shader: "texture",
@@ -284,8 +280,8 @@ var buildCity = function(scene){
 
 	//
 	var build1 = new RD.SceneNode({
-		position: [-3000,0,-500],
-		scaling: [40,40,40],
+		position: [-300,0,-50],
+		scaling: [4,4,4],
 		color: [1,1,1,1],
 		mesh: "Building_A14",
 		shader: "texture",
@@ -297,8 +293,8 @@ var buildCity = function(scene){
 	scene.root.addChild( build1 );
 
 	var build2 = new RD.SceneNode({
-		position: [-1800,0,-500],
-		scaling: [40,40,40],
+		position: [-180,0,-50],
+		scaling: [4,4,4],
 		color: [1,1,1,1],
 		mesh: "Building_A11",
 		shader: "texture",
@@ -309,8 +305,8 @@ var buildCity = function(scene){
 	scene.root.addChild( build2 );
 
 	var build3 = new RD.SceneNode({
-		position: [-800,0,-500],
-		scaling: [40,40,40],
+		position: [-80,0,-50],
+		scaling: [4,4,4],
 		color: [1,1,1,1],
 		mesh: "Building_A11",
 		shader: "texture",
@@ -321,8 +317,8 @@ var buildCity = function(scene){
 	scene.root.addChild( build3 );
 
 	var build4 = new RD.SceneNode({
-		position: [500,0,-400],
-		scaling: [40,40,40],
+		position: [50,0,-40],
+		scaling: [4,4,4],
 		color: [1,1,1,1],
 		mesh: "Building_A01",
 		shader: "texture",
@@ -333,8 +329,8 @@ var buildCity = function(scene){
 	scene.root.addChild( build4 );
 
 	var build5 = new RD.SceneNode({
-		position: [1200,0,-400],
-		scaling: [40,40,40],
+		position: [120,0,-40],
+		scaling: [4,4,4],
 		color: [1,1,1,1],
 		mesh: "Building_A05",
 		shader: "texture",
@@ -345,8 +341,8 @@ var buildCity = function(scene){
 	scene.root.addChild( build5 );
 
 	var build6 = new RD.SceneNode({
-		position: [1900,0,-400],
-		scaling: [40,40,40],
+		position: [190,0,-40],
+		scaling: [4,4,4],
 		color: [1,1,1,1],
 		mesh: "Building_A05",
 		shader: "texture",
@@ -357,8 +353,8 @@ var buildCity = function(scene){
 	scene.root.addChild( build6 );
 
 	var build7 = new RD.SceneNode({
-		position: [2650,0,-300],
-		scaling: [40,40,40],
+		position: [265,0,-30],
+		scaling: [4,4,4],
 		color: [1,1,1,1],
 		mesh: "Building_A02",
 		shader: "texture",
@@ -369,8 +365,8 @@ var buildCity = function(scene){
 	scene.root.addChild( build7 );
 
 	var build8 = new RD.SceneNode({
-		position: [3000,0,1100],
-		scaling: [40,40,40],
+		position: [300,0,110],
+		scaling: [4,4,4],
 		color: [1,1,1,1],
 		mesh: "Building_A14",
 		shader: "texture",
@@ -382,8 +378,8 @@ var buildCity = function(scene){
 	scene.root.addChild( build8 );
 
 	var build9 = new RD.SceneNode({
-		position: [1800,0,1100],
-		scaling: [40,40,40],
+		position: [180,0,110],
+		scaling: [4,4,4],
 		color: [1,1,1,1],
 		mesh: "Building_A11",
 		shader: "texture",
@@ -395,8 +391,8 @@ var buildCity = function(scene){
 	scene.root.addChild( build9 );
 
 	var build10 = new RD.SceneNode({
-		position: [800,0,1100],
-		scaling: [40,40,40],
+		position: [80,0,110],
+		scaling: [4,4,4],
 		color: [1,1,1,1],
 		mesh: "Building_A11",
 		shader: "texture",
@@ -408,8 +404,8 @@ var buildCity = function(scene){
 	scene.root.addChild( build10 );
 
 	var build11 = new RD.SceneNode({
-		position: [-500,0,1000],
-		scaling: [40,40,40],
+		position: [-50,0,100],
+		scaling: [4,4,4],
 		color: [1,1,1,1],
 		mesh: "Building_A01",
 		shader: "texture",
@@ -421,8 +417,8 @@ var buildCity = function(scene){
 	scene.root.addChild( build11 );
 
 	var build12 = new RD.SceneNode({
-		position: [-1200,0,1000],
-		scaling: [40,40,40],
+		position: [-120,0,100],
+		scaling: [4,4,4],
 		color: [1,1,1,1],
 		mesh: "Building_A05",
 		shader: "texture",
@@ -434,8 +430,8 @@ var buildCity = function(scene){
 	scene.root.addChild( build12 );
 
 	var build13 = new RD.SceneNode({
-		position: [-1900,0,1000],
-		scaling: [40,40,40],
+		position: [-190,0,100],
+		scaling: [4,4,4],
 		color: [1,1,1,1],
 		mesh: "Building_A05",
 		shader: "texture",
@@ -447,8 +443,8 @@ var buildCity = function(scene){
 	scene.root.addChild( build13 );
 
 	var build14 = new RD.SceneNode({
-		position: [-2650,0,900],
-		scaling: [40,40,40],
+		position: [-265,0,90],
+		scaling: [4,4,4],
 		color: [1,1,1,1],
 		mesh: "Building_A02",
 		shader: "texture",
@@ -463,8 +459,8 @@ var buildCity = function(scene){
 	for(var i = 0; i < 13; i++){
 		for(var j = 0; j < 2; j++){
 			lamp = new RD.SceneNode({
-				position: [-3200+i*500,0,75+j*500],
-				scaling: [10,10,10],
+				position: [-320+i*50,0,7.5+j*50],
+				scaling: [1,1,1],
 				color: [1,1,1,1],
 				mesh: "lamp",
 				shader: "texture",
