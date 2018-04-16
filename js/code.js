@@ -1,6 +1,6 @@
 var scene = null;
 
-var moveup = movedown = moveleft = moveright = false;
+var moveup = movedown = moveleft = moveright = colorLights = false;
 var debuglight = true;
 var speed = 20;
 var multiplier = 1;
@@ -8,6 +8,7 @@ var fps = mediaFps = totalCounts = sumFrames = 0;
 var mode = 1;
 var skybox = null;
 var runChart = true;
+var numMeshes = 0;
 
 function init()
 {
@@ -32,7 +33,6 @@ function init()
 	//create mesh
 	//renderer.loadMesh("lee.obj", "lee", null);
 	renderer.loadMesh("streetlamp.obj", "lamp", null);
-	
 
 	for(var i = 1; i < 15; i++){
 		if(i<10)
@@ -42,6 +42,8 @@ function init()
 
 		renderer.loadMesh(text+i+".obj", text+i, null);
 	}
+
+
 
 	//create texture
 	renderer.loadTexture("stars.jpg", {temp_color:[80,120,40,255], name: "stars"}, null);
@@ -69,6 +71,7 @@ function init()
 	//global settings
 	var bg_color = vec4.fromValues(0.0,0.0,0.0,1);
 	var u_color = vec4.fromValues(1.0,1.0,1.0,1);
+
 
 	//main draw function
 	context.ondraw = function(){
@@ -108,6 +111,13 @@ function init()
 				renderer.render(scene, camera);
 				DF.renderBuffer(2);
 				break;
+			case 9: // TILED DEFERRED
+				DF.clearFrameBuffer(renderer, bg_color);
+				renderer.render(scene, camera);
+				lights.lightCulling(camera, false);
+				DF.renderSceneTiled(camera);
+				break;
+
 		}
 		if(debuglight)
 			lights.light_debug(camera);
@@ -117,7 +127,7 @@ function init()
 	context.onupdate = function(dt)
 	{
 		calculateFrames(dt);
-		showMode();
+		showMode(renderer);
 		skybox.position = camera.position;
 		scene.update(dt);
 		switch(mode) {
@@ -174,51 +184,51 @@ function init()
 		if(e.keyCode == 16){ //Shift
 			multiplier = 4;
 		}
-		if(e.keyCode == 49){ // FORWARD+
+		if(e.keyCode == 49){ // 1
 			mode = 1;
 			sumFrames = totalCounts = 0;
 			fpsData = [];
 		}
-		if(e.keyCode == 50){ // TILE DEBUG
+		if(e.keyCode == 50){ // 2
 			mode = 2;
 			sumFrames = totalCounts = 0;
 			fpsData = [];
 		}
-		if(e.keyCode == 51){ // TILE DEBUG HEAT MAP
+		if(e.keyCode == 51){ // 3
 			mode = 3;
 			sumFrames = totalCounts = 0;
 			fpsData = [];
 		}
-		if(e.keyCode == 52){ // FORWARD
+		if(e.keyCode == 52){ // 4
 			mode = 4;
 			sumFrames = totalCounts = 0;
 			fpsData = [];
 		}
-		if(e.keyCode == 53){ // DEFERRED
+		if(e.keyCode == 53){ // 5
 			mode = 5;
 			sumFrames = totalCounts = 0;
 			fpsData = [];
 		}
-		if(e.keyCode == 54){ // DEFERRED COLOR
+		if(e.keyCode == 54){ // 6
 			mode = 6;
 			sumFrames = totalCounts = 0;
 			fpsData = [];
 		}
-		if(e.keyCode == 55){ // DEFERRED NORMAL
+		if(e.keyCode == 55){ // 7
 			mode = 7;
 			sumFrames = totalCounts = 0;
 			fpsData = [];
 		}
-		if(e.keyCode == 56){ // DEFERRED DEPTH
+		if(e.keyCode == 56){ // 8
 			mode = 8;
 			sumFrames = totalCounts = 0;
 			fpsData = [];
 		}
 		if(e.keyCode == 109){ // -
-			LI.LIGHT_RADIUS -= 10;
+			LI.LIGHT_RADIUS -= 2;
 		}
 		if(e.keyCode == 107){ // +
-			LI.LIGHT_RADIUS += 10;
+			LI.LIGHT_RADIUS += 2;
 		}
 		if(e.keyCode == 90){ // Z
 			LI.TILE_SIZE = 8;
@@ -237,6 +247,15 @@ function init()
 		}
 		if(e.keyCode == 80){ // P
 			runChart = !runChart;
+		}
+		if(e.keyCode == 75){ // K
+			colorLights = !colorLights;
+		}
+
+		if(e.keyCode == 57){ // 9
+			mode = 9;
+			sumFrames = totalCounts = 0;
+			fpsData = [];
 		}
 	}
 

@@ -8,6 +8,7 @@
 		html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; }
 		.absolute { position: absolute; margin-left: 1%; }
 		#fps { color: white; }
+		#meshes { color: white; }
 		#mode { color: white; }
 		#instructions { position: absolute; bottom: 0; color: white; margin-left: 1%; margin-bottom: .5%; }
 		#graph { position: absolute; bottom: 0; right: 0; color: white; margin-left: 1%; margin-bottom: .5%; }
@@ -25,6 +26,7 @@
 <body>
 	<div class="absolute">
 		<div id="fps"></div>
+		<div id="meshes"></div>
 		<div id="mode"></div>
 	</div>
 	<div id="instructions">
@@ -39,7 +41,9 @@
 		&emsp;Press 6 to show Color Texture <br>
 		&emsp;Press 7 to show Normal Texture <br>
 		&emsp;Press 8 to show Depth Texture <br>
+		Press 9 to use Tiled Deferred Pipeline <br>
 		Press L to show/hide lights <br>
+		Press K to use random light color <br>
 		Press P to start/stop FPS chart <br>
 		Press -/+ to reduce/augment light radius<br>
 	</div>

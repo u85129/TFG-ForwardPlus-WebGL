@@ -12,6 +12,8 @@ var NUM_LIGHTS = LI.NUM_LIGHTS;
 var TILE_SIZE = LI.TILE_SIZE;
 
 var lightPosition = LI.position = null;
+var lightColorTexture = LI.lightColorTexture = null;
+var lightColor = LI.lightColor = null;
 var buffer = quad = null;
 
 
@@ -40,8 +42,15 @@ LI.init = function (tileSize, lightRadius) {
         LI.position[i*3] = Math.random() * 600 - 300;
         LI.position[i*3 + 1] = Math.random() * 150;
         LI.position[i*3 + 2] = Math.random() * 450 - 300;
-    }
+    }    
 
+    lightColor = LI.lightColor = new Float32Array(NUM_LIGHTS * 3);
+    for(var i = 0; i < numLights; i++){
+        // pos
+        LI.lightColor[i*3] = Math.random();
+        LI.lightColor[i*3 + 1] = Math.random();
+        LI.lightColor[i*3 + 2] = Math.random();
+    }
 
     buffer = gl.createBuffer();
     var lightPositionTexture = LI.positionTexture = gl.createTexture();
@@ -50,6 +59,18 @@ LI.init = function (tileSize, lightRadius) {
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB32F, NUM_LIGHTS, 1, 0, gl.RGB, gl.FLOAT , lightPosition);
     else
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, NUM_LIGHTS, 1, 0, gl.RGB, gl.FLOAT , lightPosition);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.bindTexture(gl.TEXTURE_2D, null);
+
+    LI.lightColorTexture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, LI.lightColorTexture);
+    if(gl.webgl_version == 2)
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB32F, NUM_LIGHTS, 1, 0, gl.RGB, gl.FLOAT , LI.lightColor);
+    else
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, NUM_LIGHTS, 1, 0, gl.RGB, gl.FLOAT , LI.lightColor);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);

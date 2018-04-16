@@ -19,7 +19,7 @@ var calculateFrames = function(dt){
 	totalCounts++;
 	sumFrames += fps;
 	mediaFps = sumFrames / totalCounts;
-	document.getElementById("fps").innerHTML = "FPS: "+Math.round(fps)+" - Media: "+Math.round(mediaFps)+"<br>Number of lights: "+LI.NUM_LIGHTS;
+	document.getElementById("fps").innerHTML = "FPS: "+Math.round(fps)+"<br>Media: "+Math.round(mediaFps)+"<br>Number of lights: "+LI.NUM_LIGHTS;
 
 	if(runChart){
 		fpsData.push(fps);
@@ -48,7 +48,7 @@ var manageControls = function(dt, camera){
 		camera.move(camera.getLocalVector([0,0,speed*multiplier*dt]));
 }
 
-var showMode = function(){
+var showMode = function(renderer){
 	if(mode == 1)
 		document.getElementById("mode").innerHTML = 'Forward+ '+LI.TILE_SIZE;
 	if(mode == 2)
@@ -65,6 +65,11 @@ var showMode = function(){
 		document.getElementById("mode").innerHTML = 'Deferred: Normal Texture';
 	if(mode == 8)
 		document.getElementById("mode").innerHTML = 'Deferred: Depth texture';
+	if(mode == 8)
+		document.getElementById("mode").innerHTML = 'Tiled Deferred '+LI.TILE_SIZE;
+
+	document.getElementById("meshes").innerHTML = renderer._nodes.length+" Nodes, "+numMeshes+" Meshes";
+	numMeshes = 0;
 }
 
 var buildCity = function(scene){

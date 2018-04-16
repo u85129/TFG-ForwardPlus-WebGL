@@ -1862,10 +1862,17 @@ Renderer.prototype.renderNode = function(node, camera)
 	//For this project the meshes will always need this uniforms (more or less) so we add it for every mesh automatically
 	node._uniforms.u_mvp = camera._mvp_matrix;
 	node._uniforms.u_model = node._global_matrix;
+	node._uniforms.u_colorLights = colorLights;
 	if(mode == 1 || mode == 4){
 		gl.activeTexture(gl.TEXTURE0 + slot);
 	    gl.bindTexture(gl.TEXTURE_2D, LI.positionTexture);
 	    node._uniforms.u_lightPositionTexture = slot;
+	    slot++;
+
+	    gl.activeTexture(gl.TEXTURE0 + slot);
+	    gl.bindTexture(gl.TEXTURE_2D, LI.lightColorTexture);
+	    node._uniforms.u_lightColorTexture = slot;
+
 		node._uniforms.u_eye = camera.position; 
 		node._uniforms.u_numLights = LI.NUM_LIGHTS;
 		node._uniforms.u_ambient = vec3.fromValues(0.02,0.02,0.02);
@@ -1926,20 +1933,29 @@ Renderer.prototype.renderNode = function(node, camera)
 					}else{
 						node._uniforms[texture_uniform_name] = texture.bind( slot );
 					}
+					numMeshes++;
 					shader.drawRange( mesh, node.primitive === undefined ? gl.TRIANGLES : node.primitive, mesh.info.groups[i].start, mesh.info.groups[i].length , node.indices );
 				}
 			}
 		}else{
-			if(node.draw_range)
+			if(node.draw_range){
+				numMeshes++;
 				shader.drawRange( mesh, node.primitive === undefined ? gl.TRIANGLES : node.primitive, node.draw_range[0], node.draw_range[1] , node.indices );
-			else
+			}
+			else{
 				shader.draw( mesh, node.primitive === undefined ? gl.TRIANGLES : node.primitive, node.indices );
+				numMeshes++;
+			}
 		}
 	}else{
-		if(node.draw_range)
+		if(node.draw_range){
 			shader.drawRange( mesh, node.primitive === undefined ? gl.TRIANGLES : node.primitive, node.draw_range[0], node.draw_range[1] , node.indices );
-		else
+			numMeshes++;
+		}
+		else{
 			shader.draw( mesh, node.primitive === undefined ? gl.TRIANGLES : node.primitive, node.indices );
+			numMeshes++;
+		}
 	}
 	if(mode >= 5){
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -3344,9 +3360,11 @@ Renderer.prototype.createShaders = function()
 			uniform vec3 u_ambient;\
 			uniform vec3 u_diffuse;\
 			uniform sampler2D u_lightPositionTexture;\
+			uniform sampler2D u_lightColorTexture;\
 			uniform int u_lightRadius;\
 			uniform int u_numLights;\
 			uniform float u_specular_gloss;\
+			uniform bool u_colorLights;\
 			void main() {\
 			  vec3 N = normalize(v_normal);\
 			  vec4 textureColor = texture2D(u_color_texture, v_coord);\
@@ -3357,9 +3375,12 @@ Renderer.prototype.createShaders = function()
             	if (i >= u_numLights) break;\
             	vec2 lightUV = vec2( (float(i) + 0.5 ) / float(u_numLights) , 0.5);\
         		vec3 aux = texture2D(u_lightPositionTexture, lightUV).xyz;\
+        		vec3 lightColor = vec3(1.0,1.0,1.0);\
+        		if(u_colorLights)\
+        			lightColor = texture2D(u_lightColorTexture, lightUV).xyz;\
             	vec3 surfaceToLight = normalize(aux - v_position.xyz);\
             	float kd = clamp(dot(N, surfaceToLight), 0.0, 1.0);\
-            	vec3 Idiff = kd * textureColor.xyz;\
+            	vec3 Idiff = kd * lightColor * textureColor.xyz;\
             	float ks = 0.0;\
                 if(kd > 0.0){\
    		          vec3 V = normalize(u_eye - v_position.xyz);\
@@ -3368,7 +3389,7 @@ Renderer.prototype.createShaders = function()
 				  float cosAngle = clamp(dot(vectorReflejado, V), 0.0, 1.0);\
 	    		  ks = pow(cosAngle, u_specular_gloss);\
    			    }\
-   			    vec3 Ispec = textureColor.w * ks * textureColor.xyz;\
+   			    vec3 Ispec = textureColor.w * ks * textureColor.xyz * lightColor;\
    		        float radius = float(u_lightRadius);\
    	            float distanceToLight = length(aux - v_position.xyz);\
                 float attenuation = clamp(1.0 - (distanceToLight) / (radius), 0.0, 1.0);\
@@ -3398,6 +3419,7 @@ Renderer.prototype.createShaders = function()
 			uniform sampler2D u_normal_texture;\
 			uniform sampler2D u_lightPositionTexture;\
 			uniform sampler2D u_depth_texture;\
+			uniform sampler2D u_lightColorTexture;\
 			uniform int u_lightRadius;\
 			uniform int u_numLights;\
 			uniform vec3 u_ambient;\
@@ -3405,6 +3427,7 @@ Renderer.prototype.createShaders = function()
 			uniform int u_screenHeight;\
 			uniform vec3 u_eye;\
 			uniform mat4 u_invp;\
+			uniform bool u_colorLights;\
 			void main() {\
 			  vec2 uv = (gl_FragCoord.xy) / vec2(u_screenWidth, u_screenHeight);\
 			  vec2 ndc = uv * 2.0 - vec2(1.0);\
@@ -3425,9 +3448,12 @@ Renderer.prototype.createShaders = function()
             	if (i >= u_numLights) break;\
             	vec2 lightUV = vec2( (float(i) + 0.5 ) / float(u_numLights) , 0.5);\
         		vec3 aux = texture2D(u_lightPositionTexture, lightUV).xyz;\
+        		vec3 lightColor = vec3(1.0,1.0,1.0);\
+        		if(u_colorLights)\
+        			lightColor = texture2D(u_lightColorTexture, lightUV).xyz;\
             	vec3 surfaceToLight = normalize(aux - position);\
             	float kd = clamp(dot(N, surfaceToLight), 0.0, 1.0);\
-            	vec3 Idiff = kd * textureColor.xyz;\
+            	vec3 Idiff = kd * textureColor.xyz * lightColor;\
             	float ks = 0.0;\
                 if(kd > 0.0){\
    		          vec3 V = normalize(u_eye - position);\
@@ -3436,7 +3462,7 @@ Renderer.prototype.createShaders = function()
 				  float cosAngle = clamp(dot(vectorReflejado, V), 0.0, 1.0);\
 	    		  ks = pow(cosAngle, 1.0);\
    			    }\
-   			    vec3 Ispec = textureColor.w * ks * textureColor.xyz;\
+   			    vec3 Ispec = textureColor.w * ks * textureColor.xyz * lightColor;\
    		        float radius = float(u_lightRadius);\
    	            float distanceToLight = length(aux - position);\
                 float attenuation = clamp(1.0 - (distanceToLight) / (radius), 0.0, 1.0);\
@@ -3447,6 +3473,309 @@ Renderer.prototype.createShaders = function()
 			}\
 		');
 	gl.shaders["deferred_shader"] = this._deferred_shader;
+
+	this._deferred_shader_8 = new GL.Shader('\
+			precision highp float;\
+			attribute vec3 a_vertex;\
+			attribute vec3 a_normal;\
+			attribute vec2 a_coord;\
+			void main() {\n\
+				gl_Position = vec4(a_vertex.xy * 2.0 - 1.0, 0.999 ,1.0);\n\
+			}\
+			', '\
+		precision highp float;\
+		uniform int u_numLights;\
+		uniform vec3 u_eye;\
+		uniform int u_tileSize;\
+		uniform int u_screenWidth;\
+		uniform int u_screenHeight;\
+		uniform sampler2D u_lightPositionTexture;\
+		uniform sampler2D u_lightColorTexture;\
+		uniform sampler2D u_depth_texture;\
+		uniform sampler2D u_normal_texture;\
+		uniform int u_lightRadius;\
+		uniform sampler2D u_lightCulled;\
+		uniform sampler2D u_color_texture;\
+		uniform vec3 u_ambient;\
+		uniform bool u_colorLights;\
+		uniform mat4 u_invp;\
+		vec3 calculateLight2(in int targetLight, in vec3 N, in vec4 textureColor, in vec3 position){\
+			vec2 lightUV = vec2( (float(targetLight) + 0.5 ) / float(u_numLights) , 0.5);\
+			vec3 lightPosition = texture2D(u_lightPositionTexture, lightUV).xyz;\
+			vec3 lightColor = vec3(1.0,1.0,1.0);\
+    		if(u_colorLights)\
+    			lightColor = texture2D(u_lightColorTexture, lightUV).xyz;\
+			vec3 surfaceToLight = normalize(lightPosition - position.xyz);\
+			float kd = clamp(dot(N, surfaceToLight), 0.0, 1.0);\
+        	vec3 Idiff = kd * textureColor.xyz * lightColor;\
+        	float ks = 0.0;\
+            if(kd > 0.0){\
+		      vec3 V = normalize(u_eye - position.xyz);\
+              vec3 vectorIncidente = normalize(position.xyz - lightPosition);\
+    		  vec3 vectorReflejado = normalize(reflect(-surfaceToLight,N));\
+			  float cosAngle = clamp(dot(vectorReflejado, V), 0.0, 1.0);\
+    		  ks = pow(cosAngle, 1.0);\
+			}\
+			vec3 Ispec = textureColor.w * ks * textureColor.xyz * lightColor;\
+		    float radius = float(u_lightRadius);\
+	        float distanceToLight = length(lightPosition - position.xyz);\
+            float attenuation = clamp(1.0 - (distanceToLight) / (radius), 0.0, 1.0);\
+            return attenuation*(Idiff + Ispec);\
+		}\
+		void main() {\
+			int targetLight = -1;\
+			int targetLightAux = -1;\
+			ivec2 pixel = ivec2(gl_FragCoord.xy);\
+			ivec2 tileIdx = pixel / u_tileSize;\
+			ivec2 pixel0 = tileIdx * u_tileSize;\
+			vec3 finalColor;\
+			vec2 uv1 = (gl_FragCoord.xy) / vec2(u_screenWidth, u_screenHeight);\
+			vec2 ndc = uv1 * 2.0 - vec2(1.0);\
+			vec4 textureColor = texture2D(u_color_texture, uv1);\
+				  float depth = texture2D(u_depth_texture, uv1).x;\
+				  if(depth >= 1.0) return;\
+					depth = depth * 2.0 - 1.0;\
+				  vec4 ndcPosition = vec4(ndc.x, ndc.y, depth, 1.0);\
+				  vec4 aux = u_invp * ndcPosition;\
+				  vec3 position = vec3(aux.x/aux.w, aux.y/aux.w, aux.z/aux.w);\
+				  vec3 N = texture2D(u_normal_texture, uv1).xyz;\
+				  N = N * 2.0 - vec3(1.0);\
+				  N = normalize(N);\
+			vec3 Iamb = u_ambient * textureColor.xyz;\
+			for(int i = 0; i < 8; i++){\
+				targetLightAux = 4 * (i * u_tileSize);\
+				if(targetLightAux >= u_numLights)\
+					break;\
+				for(int j = 0; j < 8; j++){\
+					targetLight = 4 * (i * u_tileSize + j);\
+					if(targetLight >= u_numLights)\
+						break;\
+					ivec2 pixelCandidate = pixel0 + ivec2(j, i);\
+					vec2 uv = (vec2(pixelCandidate) + vec2(0.5, 0.5)) / vec2(u_screenWidth, u_screenHeight);\
+            		vec4 candidate = texture2D(u_lightCulled, uv);\
+            		if(candidate.x == 1.0)\
+            			finalColor += calculateLight2(targetLight, N, textureColor, position);\
+        			if(targetLight + 1 >= u_numLights)\
+        				break;\
+        			if(candidate.y == 1.0)\
+            			finalColor += calculateLight2(targetLight + 1, N, textureColor, position);\
+            		if(targetLight + 2 >= u_numLights)\
+        				break;\
+        			if(candidate.z == 1.0)\
+            			finalColor += calculateLight2(targetLight + 2, N, textureColor, position);\
+            		if(targetLight + 3 >= u_numLights)\
+        				break;\
+        			if(candidate.w == 1.0)\
+            			finalColor += calculateLight2(targetLight + 3, N, textureColor, position);\
+				}\
+			}\
+			finalColor = finalColor + Iamb;\
+			gl_FragColor = vec4(finalColor, 1.0);\
+		}\
+		');
+	gl.shaders["deferred_shader_8"] = this._deferred_shader_8;
+
+	this._deferred_shader_16 = new GL.Shader('\
+			precision highp float;\
+			attribute vec3 a_vertex;\
+			attribute vec3 a_normal;\
+			attribute vec2 a_coord;\
+			void main() {\n\
+				gl_Position = vec4(a_vertex.xy * 2.0 - 1.0, 0.999 ,1.0);\n\
+			}\
+			', '\
+		precision highp float;\
+		uniform int u_numLights;\
+		uniform vec3 u_eye;\
+		uniform int u_tileSize;\
+		uniform int u_screenWidth;\
+		uniform int u_screenHeight;\
+		uniform sampler2D u_lightPositionTexture;\
+		uniform sampler2D u_lightColorTexture;\
+		uniform sampler2D u_depth_texture;\
+		uniform sampler2D u_normal_texture;\
+		uniform int u_lightRadius;\
+		uniform sampler2D u_lightCulled;\
+		uniform sampler2D u_color_texture;\
+		uniform vec3 u_ambient;\
+		uniform bool u_colorLights;\
+		uniform mat4 u_invp;\
+		vec3 calculateLight2(in int targetLight, in vec3 N, in vec4 textureColor, in vec3 position){\
+			vec2 lightUV = vec2( (float(targetLight) + 0.5 ) / float(u_numLights) , 0.5);\
+			vec3 lightPosition = texture2D(u_lightPositionTexture, lightUV).xyz;\
+			vec3 lightColor = vec3(1.0,1.0,1.0);\
+    		if(u_colorLights)\
+    			lightColor = texture2D(u_lightColorTexture, lightUV).xyz;\
+			vec3 surfaceToLight = normalize(lightPosition - position.xyz);\
+			float kd = clamp(dot(N, surfaceToLight), 0.0, 1.0);\
+        	vec3 Idiff = kd * textureColor.xyz * lightColor;\
+        	float ks = 0.0;\
+            if(kd > 0.0){\
+		      vec3 V = normalize(u_eye - position.xyz);\
+              vec3 vectorIncidente = normalize(position.xyz - lightPosition);\
+    		  vec3 vectorReflejado = normalize(reflect(-surfaceToLight,N));\
+			  float cosAngle = clamp(dot(vectorReflejado, V), 0.0, 1.0);\
+    		  ks = pow(cosAngle, 1.0);\
+			}\
+			vec3 Ispec = textureColor.w * ks * textureColor.xyz * lightColor;\
+		    float radius = float(u_lightRadius);\
+	        float distanceToLight = length(lightPosition - position.xyz);\
+            float attenuation = clamp(1.0 - (distanceToLight) / (radius), 0.0, 1.0);\
+            return attenuation*(Idiff + Ispec);\
+		}\
+		void main() {\
+			int targetLight = -1;\
+			int targetLightAux = -1;\
+			ivec2 pixel = ivec2(gl_FragCoord.xy);\
+			ivec2 tileIdx = pixel / u_tileSize;\
+			ivec2 pixel0 = tileIdx * u_tileSize;\
+			vec3 finalColor;\
+			vec2 uv1 = (gl_FragCoord.xy) / vec2(u_screenWidth, u_screenHeight);\
+			vec2 ndc = uv1 * 2.0 - vec2(1.0);\
+			vec4 textureColor = texture2D(u_color_texture, uv1);\
+				  float depth = texture2D(u_depth_texture, uv1).x;\
+				  if(depth >= 1.0) return;\
+					depth = depth * 2.0 - 1.0;\
+				  vec4 ndcPosition = vec4(ndc.x, ndc.y, depth, 1.0);\
+				  vec4 aux = u_invp * ndcPosition;\
+				  vec3 position = vec3(aux.x/aux.w, aux.y/aux.w, aux.z/aux.w);\
+				  vec3 N = texture2D(u_normal_texture, uv1).xyz;\
+				  N = N * 2.0 - vec3(1.0);\
+				  N = normalize(N);\
+			vec3 Iamb = u_ambient * textureColor.xyz;\
+			for(int i = 0; i < 16; i++){\
+				targetLightAux = 4 * (i * u_tileSize);\
+				if(targetLightAux >= u_numLights)\
+					break;\
+				for(int j = 0; j < 16; j++){\
+					targetLight = 4 * (i * u_tileSize + j);\
+					if(targetLight >= u_numLights)\
+						break;\
+					ivec2 pixelCandidate = pixel0 + ivec2(j, i);\
+					vec2 uv = (vec2(pixelCandidate) + vec2(0.5, 0.5)) / vec2(u_screenWidth, u_screenHeight);\
+            		vec4 candidate = texture2D(u_lightCulled, uv);\
+            		if(candidate.x == 1.0)\
+            			finalColor += calculateLight2(targetLight, N, textureColor, position);\
+        			if(targetLight + 1 >= u_numLights)\
+        				break;\
+        			if(candidate.y == 1.0)\
+            			finalColor += calculateLight2(targetLight + 1, N, textureColor, position);\
+            		if(targetLight + 2 >= u_numLights)\
+        				break;\
+        			if(candidate.z == 1.0)\
+            			finalColor += calculateLight2(targetLight + 2, N, textureColor, position);\
+            		if(targetLight + 3 >= u_numLights)\
+        				break;\
+        			if(candidate.w == 1.0)\
+            			finalColor += calculateLight2(targetLight + 3, N, textureColor, position);\
+				}\
+			}\
+			finalColor = finalColor + Iamb;\
+			gl_FragColor = vec4(finalColor, 1.0);\
+		}\
+		');
+	gl.shaders["deferred_shader_16"] = this._deferred_shader_16;
+
+	this._deferred_shader_32 = new GL.Shader('\
+			precision highp float;\
+			attribute vec3 a_vertex;\
+			attribute vec3 a_normal;\
+			attribute vec2 a_coord;\
+			void main() {\n\
+				gl_Position = vec4(a_vertex.xy * 2.0 - 1.0, 0.999 ,1.0);\n\
+			}\
+			', '\
+		precision highp float;\
+		uniform int u_numLights;\
+		uniform vec3 u_eye;\
+		uniform int u_tileSize;\
+		uniform int u_screenWidth;\
+		uniform int u_screenHeight;\
+		uniform sampler2D u_lightPositionTexture;\
+		uniform sampler2D u_lightColorTexture;\
+		uniform sampler2D u_depth_texture;\
+		uniform sampler2D u_normal_texture;\
+		uniform int u_lightRadius;\
+		uniform sampler2D u_lightCulled;\
+		uniform sampler2D u_color_texture;\
+		uniform vec3 u_ambient;\
+		uniform bool u_colorLights;\
+		uniform mat4 u_invp;\
+		vec3 calculateLight2(in int targetLight, in vec3 N, in vec4 textureColor, in vec3 position){\
+			vec2 lightUV = vec2( (float(targetLight) + 0.5 ) / float(u_numLights) , 0.5);\
+			vec3 lightPosition = texture2D(u_lightPositionTexture, lightUV).xyz;\
+			vec3 lightColor = vec3(1.0,1.0,1.0);\
+    		if(u_colorLights)\
+    			lightColor = texture2D(u_lightColorTexture, lightUV).xyz;\
+			vec3 surfaceToLight = normalize(lightPosition - position.xyz);\
+			float kd = clamp(dot(N, surfaceToLight), 0.0, 1.0);\
+        	vec3 Idiff = kd * textureColor.xyz * lightColor;\
+        	float ks = 0.0;\
+            if(kd > 0.0){\
+		      vec3 V = normalize(u_eye - position.xyz);\
+              vec3 vectorIncidente = normalize(position.xyz - lightPosition);\
+    		  vec3 vectorReflejado = normalize(reflect(-surfaceToLight,N));\
+			  float cosAngle = clamp(dot(vectorReflejado, V), 0.0, 1.0);\
+    		  ks = pow(cosAngle, 1.0);\
+			}\
+			vec3 Ispec = textureColor.w * ks * textureColor.xyz * lightColor;\
+		    float radius = float(u_lightRadius);\
+	        float distanceToLight = length(lightPosition - position.xyz);\
+            float attenuation = clamp(1.0 - (distanceToLight) / (radius), 0.0, 1.0);\
+            return attenuation*(Idiff + Ispec);\
+		}\
+		void main() {\
+			int targetLight = -1;\
+			int targetLightAux = -1;\
+			ivec2 pixel = ivec2(gl_FragCoord.xy);\
+			ivec2 tileIdx = pixel / u_tileSize;\
+			ivec2 pixel0 = tileIdx * u_tileSize;\
+			vec3 finalColor;\
+			vec2 uv1 = (gl_FragCoord.xy) / vec2(u_screenWidth, u_screenHeight);\
+			vec2 ndc = uv1 * 2.0 - vec2(1.0);\
+			vec4 textureColor = texture2D(u_color_texture, uv1);\
+				  float depth = texture2D(u_depth_texture, uv1).x;\
+				  if(depth >= 1.0) return;\
+					depth = depth * 2.0 - 1.0;\
+				  vec4 ndcPosition = vec4(ndc.x, ndc.y, depth, 1.0);\
+				  vec4 aux = u_invp * ndcPosition;\
+				  vec3 position = vec3(aux.x/aux.w, aux.y/aux.w, aux.z/aux.w);\
+				  vec3 N = texture2D(u_normal_texture, uv1).xyz;\
+				  N = N * 2.0 - vec3(1.0);\
+				  N = normalize(N);\
+			vec3 Iamb = u_ambient * textureColor.xyz;\
+			for(int i = 0; i < 32; i++){\
+				targetLightAux = 4 * (i * u_tileSize);\
+				if(targetLightAux >= u_numLights)\
+					break;\
+				for(int j = 0; j < 32; j++){\
+					targetLight = 4 * (i * u_tileSize + j);\
+					if(targetLight >= u_numLights)\
+						break;\
+					ivec2 pixelCandidate = pixel0 + ivec2(j, i);\
+					vec2 uv = (vec2(pixelCandidate) + vec2(0.5, 0.5)) / vec2(u_screenWidth, u_screenHeight);\
+            		vec4 candidate = texture2D(u_lightCulled, uv);\
+            		if(candidate.x == 1.0)\
+            			finalColor += calculateLight2(targetLight, N, textureColor, position);\
+        			if(targetLight + 1 >= u_numLights)\
+        				break;\
+        			if(candidate.y == 1.0)\
+            			finalColor += calculateLight2(targetLight + 1, N, textureColor, position);\
+            		if(targetLight + 2 >= u_numLights)\
+        				break;\
+        			if(candidate.z == 1.0)\
+            			finalColor += calculateLight2(targetLight + 2, N, textureColor, position);\
+            		if(targetLight + 3 >= u_numLights)\
+        				break;\
+        			if(candidate.w == 1.0)\
+            			finalColor += calculateLight2(targetLight + 3, N, textureColor, position);\
+				}\
+			}\
+			finalColor = finalColor + Iamb;\
+			gl_FragColor = vec4(finalColor, 1.0);\
+		}\
+		');
+	gl.shaders["deferred_shader_32"] = this._deferred_shader_32;
 
 	this._light_debug = new GL.Shader('\
 		precision highp float;\
@@ -3714,18 +4043,23 @@ Renderer.prototype.createShaders = function()
 		uniform int u_screenWidth;\
 		uniform int u_screenHeight;\
 		uniform sampler2D u_lightPositionTexture;\
+		uniform sampler2D u_lightColorTexture;\
 		uniform int u_lightRadius;\
 		uniform sampler2D u_lightCulled;\
 		uniform sampler2D u_color_texture;\
 		uniform float u_specular_gloss;\
 		uniform vec3 u_ambient;\
 		uniform vec3 u_diffuse;\
+		uniform bool u_colorLights;\
 		vec3 calculateLight(in int targetLight, in vec3 N, in vec4 textureColor){\
 			vec2 lightUV = vec2( (float(targetLight) + 0.5 ) / float(u_numLights) , 0.5);\
 			vec3 lightPosition = texture2D(u_lightPositionTexture, lightUV).xyz;\
+			vec3 lightColor = vec3(1.0,1.0,1.0);\
+    		if(u_colorLights)\
+    			lightColor = texture2D(u_lightColorTexture, lightUV).xyz;\
 			vec3 surfaceToLight = normalize(lightPosition - v_position.xyz);\
 			float kd = clamp(dot(N, surfaceToLight), 0.0, 1.0);\
-        	vec3 Idiff = kd * textureColor.xyz;\
+        	vec3 Idiff = kd * textureColor.xyz * lightColor;\
         	float ks = 0.0;\
             if(kd > 0.0){\
 		      vec3 V = normalize(u_eye - v_position.xyz);\
@@ -3734,7 +4068,7 @@ Renderer.prototype.createShaders = function()
 			  float cosAngle = clamp(dot(vectorReflejado, V), 0.0, 1.0);\
     		  ks = pow(cosAngle, u_specular_gloss);\
 			}\
-			vec3 Ispec = textureColor.w * ks * textureColor.xyz;\
+			vec3 Ispec = textureColor.w * ks * textureColor.xyz * lightColor;\
 		    float radius = float(u_lightRadius);\
 	        float distanceToLight = length(lightPosition - v_position.xyz);\
             float attenuation = clamp(1.0 - (distanceToLight) / (radius), 0.0, 1.0);\
@@ -3810,18 +4144,23 @@ Renderer.prototype.createShaders = function()
 		uniform int u_screenWidth;\
 		uniform int u_screenHeight;\
 		uniform sampler2D u_lightPositionTexture;\
+		uniform sampler2D u_lightColorTexture;\
 		uniform int u_lightRadius;\
 		uniform sampler2D u_lightCulled;\
 		uniform sampler2D u_color_texture;\
 		uniform float u_specular_gloss;\
 		uniform vec3 u_ambient;\
 		uniform vec3 u_diffuse;\
+		uniform bool u_colorLights;\
 		vec3 calculateLight(in int targetLight, in vec3 N, in vec4 textureColor){\
 			vec2 lightUV = vec2( (float(targetLight) + 0.5 ) / float(u_numLights) , 0.5);\
 			vec3 lightPosition = texture2D(u_lightPositionTexture, lightUV).xyz;\
+			vec3 lightColor = vec3(1.0,1.0,1.0);\
+    		if(u_colorLights)\
+    			lightColor = texture2D(u_lightColorTexture, lightUV).xyz;\
 			vec3 surfaceToLight = normalize(lightPosition - v_position.xyz);\
 			float kd = clamp(dot(N, surfaceToLight), 0.0, 1.0);\
-        	vec3 Idiff = kd * textureColor.xyz;\
+        	vec3 Idiff = kd * textureColor.xyz * lightColor;\
         	float ks = 0.0;\
             if(kd > 0.0){\
 		      vec3 V = normalize(u_eye - v_position.xyz);\
@@ -3830,7 +4169,7 @@ Renderer.prototype.createShaders = function()
 			  float cosAngle = clamp(dot(vectorReflejado, V), 0.0, 1.0);\
     		  ks = pow(cosAngle, u_specular_gloss);\
 			}\
-			vec3 Ispec = textureColor.w * ks * textureColor.xyz;\
+			vec3 Ispec = textureColor.w * ks * textureColor.xyz * lightColor;\
 		    float radius = float(u_lightRadius);\
 	        float distanceToLight = length(lightPosition - v_position.xyz);\
             float attenuation = clamp(1.0 - (distanceToLight) / (radius), 0.0, 1.0);\
@@ -3906,18 +4245,23 @@ Renderer.prototype.createShaders = function()
 		uniform int u_screenWidth;\
 		uniform int u_screenHeight;\
 		uniform sampler2D u_lightPositionTexture;\
+		uniform sampler2D u_lightColorTexture;\
 		uniform int u_lightRadius;\
 		uniform sampler2D u_lightCulled;\
 		uniform sampler2D u_color_texture;\
 		uniform float u_specular_gloss;\
 		uniform vec3 u_ambient;\
 		uniform vec3 u_diffuse;\
+		uniform bool u_colorLights;\
 		vec3 calculateLight(in int targetLight, in vec3 N, in vec4 textureColor){\
 			vec2 lightUV = vec2( (float(targetLight) + 0.5 ) / float(u_numLights) , 0.5);\
 			vec3 lightPosition = texture2D(u_lightPositionTexture, lightUV).xyz;\
+			vec3 lightColor = vec3(1.0,1.0,1.0);\
+    		if(u_colorLights)\
+    			lightColor = texture2D(u_lightColorTexture, lightUV).xyz;\
 			vec3 surfaceToLight = normalize(lightPosition - v_position.xyz);\
 			float kd = clamp(dot(N, surfaceToLight), 0.0, 1.0);\
-        	vec3 Idiff = kd * textureColor.xyz;\
+        	vec3 Idiff = kd * textureColor.xyz * lightColor;\
         	float ks = 0.0;\
             if(kd > 0.0){\
 		      vec3 V = normalize(u_eye - v_position.xyz);\
@@ -3926,7 +4270,7 @@ Renderer.prototype.createShaders = function()
 			  float cosAngle = clamp(dot(vectorReflejado, V), 0.0, 1.0);\
     		  ks = pow(cosAngle, u_specular_gloss);\
 			}\
-			vec3 Ispec = textureColor.w * ks * textureColor.xyz;\
+			vec3 Ispec = textureColor.w * ks * textureColor.xyz * lightColor;\
 		    float radius = float(u_lightRadius);\
 	        float distanceToLight = length(lightPosition - v_position.xyz);\
             float attenuation = clamp(1.0 - (distanceToLight) / (radius), 0.0, 1.0);\

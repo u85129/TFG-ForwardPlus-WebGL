@@ -65,6 +65,8 @@ DF.renderScene = function(camera){
     gl.bindTexture(gl.TEXTURE_2D, LI.positionTexture);
     gl.activeTexture(gl.TEXTURE0 + 3);
     gl.bindTexture( gl.TEXTURE_2D, DF.depthTexture );
+    gl.activeTexture(gl.TEXTURE0 + 4);
+    gl.bindTexture( gl.TEXTURE_2D, LI.lightColorTexture );
 
     var inv = mat4.create();
     mat4.invert(inv, camera._viewprojection_matrix);
@@ -74,17 +76,63 @@ DF.renderScene = function(camera){
         u_normal_texture : 1,
         u_lightPositionTexture : 2,
         u_depth_texture : 3,
+        u_lightColorTexture : 4,
         u_screenWidth : window.innerWidth,
         u_screenHeight : window.innerHeight,
         u_numLights: LI.NUM_LIGHTS,
         u_ambient : vec3.fromValues(0.02,0.02,0.02),
         u_lightRadius : LI.LIGHT_RADIUS,
         u_eye: camera.position,
-        u_invp: inv
+        u_invp: inv,
+        u_colorLights : colorLights
     });
 
     shader.draw(quad);
 }
+
+
+DF.renderSceneTiled = function(camera){
+    var shader = gl.shaders["deferred_shader_"+LI.TILE_SIZE];
+    
+    gl.useProgram(shader.program);
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture( gl.TEXTURE_2D, DF.colorTexture );
+    gl.activeTexture(gl.TEXTURE0 + 1);
+    gl.bindTexture( gl.TEXTURE_2D, DF.normalTexture );
+    gl.activeTexture(gl.TEXTURE0 + 2);
+    gl.bindTexture(gl.TEXTURE_2D, LI.positionTexture);
+    gl.activeTexture(gl.TEXTURE0 + 3);
+    gl.bindTexture( gl.TEXTURE_2D, DF.depthTexture );
+    gl.activeTexture(gl.TEXTURE0 + 4);
+    gl.bindTexture( gl.TEXTURE_2D, LI.lightColorTexture );
+    gl.activeTexture(gl.TEXTURE0 + 5);
+    gl.bindTexture( gl.TEXTURE_2D, LI.lightCulled );
+
+    var inv = mat4.create();
+    mat4.invert(inv, camera._viewprojection_matrix);
+
+    shader.uniforms({
+        u_color_texture : 0,
+        u_normal_texture : 1,
+        u_lightPositionTexture : 2,
+        u_depth_texture : 3,
+        u_lightColorTexture : 4,
+        u_lightCulled: 5,
+        u_screenWidth : window.innerWidth,
+        u_screenHeight : window.innerHeight,
+        u_numLights: LI.NUM_LIGHTS,
+        u_ambient : vec3.fromValues(0.02,0.02,0.02),
+        u_lightRadius : LI.LIGHT_RADIUS,
+        u_eye: camera.position,
+        u_invp: inv,
+        u_colorLights : colorLights,
+        u_tileSize : LI.TILE_SIZE,
+    });
+
+    shader.draw(quad);
+}
+
 
 DF.renderBuffer = function(target){
     var shader = gl.shaders["show_g_buffer"];
