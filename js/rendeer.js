@@ -310,7 +310,7 @@ Object.defineProperty(SceneNode.prototype, 'color', {
 });
 
 /**
-* This number is the 4º component of color but can be accessed directly 
+* This number is the 4Âº component of color but can be accessed directly 
 * @property opacity {number}
 */
 Object.defineProperty(SceneNode.prototype, 'opacity', {
@@ -988,7 +988,7 @@ SceneNode.prototype.propagate = function(method, params)
 	for(var i = 0, l = this.children.length; i < l; i++)
 	{
 		var node = this.children[i];
-		if(!node) //¿?
+		if(!node) //Â¿?
 			continue;
 		//has method
 		if(node[method])
@@ -1786,6 +1786,7 @@ Renderer.prototype.renderNode = function(node, camera)
 		shader = node.textures.color ? this._texture_shader : this._flat_shader;
 	
 	//ADDED BY DANI
+	//depending the mode we use different shaders, if we paint a node with fliped normals it will be the skybox, so it will use the texture shader (no shading or need of lights)
 	if( !node.flags.flip_normals ){
 		if(mode == 1){
 			shader_name = "forward_plus_"+LI.TILE_SIZE;
@@ -1896,10 +1897,12 @@ Renderer.prototype.renderNode = function(node, camera)
 
 	if(node.onShaderUniforms) //in case the node wants to add extra shader uniforms that need to be computed at render time
 		node.onShaderUniforms(this, shader);
-	//ADDED BY DANI
+	//ADDED BY DANI 
+	//if mode is greater than 5 will be deferred so we want to write it into corresponding framebuffer to write into texture
 	if(mode >= 5){
 		gl.bindFramebuffer(gl.FRAMEBUFFER, DF.g_buffer);
 	}
+	//if we see that the mesh has submeshes we will render them one by one so we can render each one with its corresponding texture
 	if(mesh.info != undefined){
 		if(mesh.info.groups != undefined){
 			if (mesh.info.groups.length > 0) {
@@ -3374,24 +3377,24 @@ Renderer.prototype.createShaders = function()
     		  {\
             	if (i >= u_numLights) break;\
             	vec2 lightUV = vec2( (float(i) + 0.5 ) / float(u_numLights) , 0.5);\
-        		vec3 aux = texture2D(u_lightPositionTexture, lightUV).xyz;\
+        		vec3 lightPosition = texture2D(u_lightPositionTexture, lightUV).xyz;\
         		vec3 lightColor = vec3(1.0,1.0,1.0);\
         		if(u_colorLights)\
         			lightColor = texture2D(u_lightColorTexture, lightUV).xyz;\
-            	vec3 surfaceToLight = normalize(aux - v_position.xyz);\
+            	vec3 surfaceToLight = normalize(lightPosition - v_position.xyz);\
             	float kd = clamp(dot(N, surfaceToLight), 0.0, 1.0);\
             	vec3 Idiff = kd * lightColor * textureColor.xyz;\
             	float ks = 0.0;\
                 if(kd > 0.0){\
    		          vec3 V = normalize(u_eye - v_position.xyz);\
-                  vec3 vectorIncidente = normalize(v_position.xyz - aux);\
+                  vec3 vectorIncidente = normalize(v_position.xyz - lightPosition);\
 	    		  vec3 vectorReflejado = normalize(reflect(-surfaceToLight,N));\
 				  float cosAngle = clamp(dot(vectorReflejado, V), 0.0, 1.0);\
 	    		  ks = pow(cosAngle, u_specular_gloss);\
    			    }\
    			    vec3 Ispec = textureColor.w * ks * textureColor.xyz * lightColor;\
    		        float radius = float(u_lightRadius);\
-   	            float distanceToLight = length(aux - v_position.xyz);\
+   	            float distanceToLight = length(lightPosition - v_position.xyz);\
                 float attenuation = clamp(1.0 - (distanceToLight) / (radius), 0.0, 1.0);\
                 finalColor += attenuation*((Idiff * u_diffuse) + Ispec);\
     		  }\
@@ -3475,13 +3478,13 @@ Renderer.prototype.createShaders = function()
 	gl.shaders["deferred_shader"] = this._deferred_shader;
 
 	this._deferred_shader_8 = new GL.Shader('\
-			precision highp float;\
-			attribute vec3 a_vertex;\
-			attribute vec3 a_normal;\
-			attribute vec2 a_coord;\
-			void main() {\n\
-				gl_Position = vec4(a_vertex.xy * 2.0 - 1.0, 0.999 ,1.0);\n\
-			}\
+		precision highp float;\
+		attribute vec3 a_vertex;\
+		attribute vec3 a_normal;\
+		attribute vec2 a_coord;\
+		void main() {\n\
+			gl_Position = vec4(a_vertex.xy * 2.0 - 1.0, 0.999 ,1.0);\n\
+		}\
 			', '\
 		precision highp float;\
 		uniform int u_numLights;\
@@ -3576,14 +3579,14 @@ Renderer.prototype.createShaders = function()
 	gl.shaders["deferred_shader_8"] = this._deferred_shader_8;
 
 	this._deferred_shader_16 = new GL.Shader('\
-			precision highp float;\
-			attribute vec3 a_vertex;\
-			attribute vec3 a_normal;\
-			attribute vec2 a_coord;\
-			void main() {\n\
-				gl_Position = vec4(a_vertex.xy * 2.0 - 1.0, 0.999 ,1.0);\n\
-			}\
-			', '\
+		precision highp float;\
+		attribute vec3 a_vertex;\
+		attribute vec3 a_normal;\
+		attribute vec2 a_coord;\
+		void main() {\n\
+			gl_Position = vec4(a_vertex.xy * 2.0 - 1.0, 0.999 ,1.0);\n\
+		}\
+		', '\
 		precision highp float;\
 		uniform int u_numLights;\
 		uniform vec3 u_eye;\
@@ -3677,14 +3680,14 @@ Renderer.prototype.createShaders = function()
 	gl.shaders["deferred_shader_16"] = this._deferred_shader_16;
 
 	this._deferred_shader_32 = new GL.Shader('\
-			precision highp float;\
-			attribute vec3 a_vertex;\
-			attribute vec3 a_normal;\
-			attribute vec2 a_coord;\
-			void main() {\n\
-				gl_Position = vec4(a_vertex.xy * 2.0 - 1.0, 0.999 ,1.0);\n\
-			}\
-			', '\
+		precision highp float;\
+		attribute vec3 a_vertex;\
+		attribute vec3 a_normal;\
+		attribute vec2 a_coord;\
+		void main() {\n\
+			gl_Position = vec4(a_vertex.xy * 2.0 - 1.0, 0.999 ,1.0);\n\
+		}\
+		', '\
 		precision highp float;\
 		uniform int u_numLights;\
 		uniform vec3 u_eye;\
@@ -3896,7 +3899,7 @@ Renderer.prototype.createShaders = function()
 		attribute vec3 a_normal;\
 		attribute vec2 a_coord;\
 		void main() {\n\
-			gl_Position = vec4(a_vertex.xy * 2.0 - 1.0, 0.999 ,1.0);\n\
+			gl_Position = vec4(a_vertex.xy, 0.999 ,1.0);\n\
 		}\
 		','\
 		precision highp float;\

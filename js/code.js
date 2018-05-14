@@ -30,8 +30,7 @@ function init()
 	//folder where stuff will be loaded	
 	renderer.setDataFolder("data");
 
-	//create mesh
-	//renderer.loadMesh("lee.obj", "lee", null);
+	//load and create mesh I will use on the scene
 	renderer.loadMesh("streetlamp.obj", "lamp", null);
 
 	for(var i = 1; i < 15; i++){
@@ -43,12 +42,11 @@ function init()
 		renderer.loadMesh(text+i+".obj", text+i, null);
 	}
 
-
-
-	//create texture
+	//load and create texture I will use on some objects
 	renderer.loadTexture("stars.jpg", {temp_color:[80,120,40,255], name: "stars"}, null);
 	renderer.loadTexture("brick.jpg", {temp_color:[80,120,40,255], name: "terrainTex"}, null);
 
+	//create a skybox
 	skybox = new RD.SceneNode({
 		position: [0,0,0],
 		scaling: [1000,1000,1000],
@@ -61,6 +59,7 @@ function init()
 	});
 	scene.root.addChild( skybox );
 
+	//place meshes with textures on the scene
 	buildCity(scene);
 	
 	//create camera
@@ -76,6 +75,7 @@ function init()
 	//main draw function
 	context.ondraw = function(){
 		renderer.clear(bg_color);
+		//Depending on the mode we compute lightculling/g-buffer and render the scene
 		switch(mode) {
 			case 1: // FORWARD +
 				lights.lightCulling(camera, false);
@@ -126,6 +126,7 @@ function init()
 	//main update
 	context.onupdate = function(dt)
 	{
+		//keep track of fps, and update skybox so camera is always at the center of it
 		calculateFrames(dt);
 		showMode(renderer);
 		skybox.position = camera.position;
@@ -142,6 +143,7 @@ function init()
 		    case 5: // DEFERRED
 		        break;
 		}
+		//manage some inputs
 		manageControls(dt, camera);
 	}
 	

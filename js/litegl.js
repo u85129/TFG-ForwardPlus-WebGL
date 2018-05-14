@@ -7486,6 +7486,11 @@ GL.create = function(options) {
 	gl.extensions["EXT_frag_depth"] = gl.getExtension("EXT_frag_depth") || gl.getExtension("WEBKIT_EXT_frag_depth") || gl.getExtension("MOZ_EXT_frag_depth");
 	gl.extensions["WEBGL_lose_context"] = gl.getExtension("WEBGL_lose_context") || gl.getExtension("WEBKIT_WEBGL_lose_context") || gl.getExtension("MOZ_WEBGL_lose_context");
 
+	//ADDED BY DANI
+	gl.extensions["disjoint_timer_query"] = gl.getExtension("EXT_disjoint_timer_query");
+	console.log(gl.getExtension('EXT_disjoint_timer_query'));
+	//FIN ADDED BY DANI
+
 	//for float textures
 	gl.extensions["OES_texture_float_linear"] = gl.getExtension("OES_texture_float_linear");
 	if(gl.extensions["OES_texture_float_linear"])
@@ -10756,7 +10761,7 @@ Mesh.parseOBJ = function(text, options)
 		}
 		else if (tokens[0] == "usemtl") {
 			//ADDED BY DANI
-			//If we find a usemtl, create a new sub mesh
+			//If we find a usemtl, create a new sub mesh (some obj I found dont create correctly new submeshes, with this I try to correct it)
 			negative_offset = positions.length / 3 - 1;
 
 			if(tokens.length > 1)

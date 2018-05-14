@@ -5,9 +5,11 @@ var DF = global.DF;
 
 DF.init = function () {
 
+    //create a framebuffer
     var g_buffer = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, g_buffer);
 
+    //create texture to store normals of scene
     DF.normalTexture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, DF.normalTexture);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
@@ -17,6 +19,7 @@ DF.init = function () {
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, window.innerWidth,window.innerHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
     gl.bindTexture(gl.TEXTURE_2D, null);
 
+    //create texture to store color of scene
     DF.colorTexture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, DF.colorTexture);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
@@ -26,6 +29,7 @@ DF.init = function () {
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, window.innerWidth,window.innerHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
     gl.bindTexture(gl.TEXTURE_2D, null);
 
+    //create texture to store depth of scene
     DF.depthTexture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, DF.depthTexture);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
@@ -39,6 +43,7 @@ DF.init = function () {
     }
     gl.bindTexture(gl.TEXTURE_2D, null);
 
+    //bind textures to framebuffer previously created (its order is important for the shader)
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, DF.depthTexture, 0);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, DF.colorTexture, 0);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0+1, gl.TEXTURE_2D, DF.normalTexture, 0);

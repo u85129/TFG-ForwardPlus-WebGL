@@ -65,7 +65,7 @@ var showMode = function(renderer){
 		document.getElementById("mode").innerHTML = 'Deferred: Normal Texture';
 	if(mode == 8)
 		document.getElementById("mode").innerHTML = 'Deferred: Depth texture';
-	if(mode == 8)
+	if(mode == 9)
 		document.getElementById("mode").innerHTML = 'Tiled Deferred '+LI.TILE_SIZE;
 
 	document.getElementById("meshes").innerHTML = renderer._nodes.length+" Nodes, "+numMeshes+" Meshes";

@@ -24,6 +24,7 @@ LI.init = function (tileSize, lightRadius) {
 
     lightPosition = LI.position = new Float32Array(NUM_LIGHTS * 3);
 
+    //Position lights
     for(var i = 0; i < 52; i++){
         // pos
         if(i < 26){
@@ -52,6 +53,7 @@ LI.init = function (tileSize, lightRadius) {
         LI.lightColor[i*3 + 2] = Math.random();
     }
 
+    //create texture to store light positions
     buffer = gl.createBuffer();
     var lightPositionTexture = LI.positionTexture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, lightPositionTexture);
@@ -65,6 +67,7 @@ LI.init = function (tileSize, lightRadius) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.bindTexture(gl.TEXTURE_2D, null);
 
+    //create texture to store light colors
     LI.lightColorTexture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, LI.lightColorTexture);
     if(gl.webgl_version == 2)
@@ -77,6 +80,7 @@ LI.init = function (tileSize, lightRadius) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.bindTexture(gl.TEXTURE_2D, null);
 
+    //create texture to store index of lights to iterate for each tile
     var lightCulled = LI.lightCulled = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, LI.lightCulled);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, window.innerWidth, window.innerHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
@@ -85,6 +89,7 @@ LI.init = function (tileSize, lightRadius) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.bindTexture(gl.TEXTURE_2D, null);
 
+    //create framebuffer and bind texture so we actually fill the light culled texture
     var lightCulledFrameBuffer = LI.lightCulledFrameBuffer = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, LI.lightCulledFrameBuffer);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, LI.lightCulled, 0);
@@ -135,6 +140,7 @@ LI.lightCulling = function(camera, render){
         u_camera_position : camera._position
     });
 
+    //using the light culling shader with its proper uniforms, if bind the framebuffer will write into texture, if not into screen
 
     if(!render)
         gl.bindFramebuffer(gl.FRAMEBUFFER, LI.lightCulledFrameBuffer);
@@ -172,6 +178,7 @@ LI.lightCullingHeatMap = function(camera){
         u_viewMatrix : inv2
     });
 
+    //using proper shader with its uniforms, no need to write into texture, is for debug
     shader.draw(quad);
 
 }
