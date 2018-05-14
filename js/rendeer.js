@@ -3899,7 +3899,7 @@ Renderer.prototype.createShaders = function()
 		attribute vec3 a_normal;\
 		attribute vec2 a_coord;\
 		void main() {\n\
-			gl_Position = vec4(a_vertex.xy, 0.999 ,1.0);\n\
+			gl_Position = vec4(a_vertex.xy * 2.0 - 1.0, 0.999 ,1.0);\n\
 		}\
 		','\
 		precision highp float;\
