@@ -9,9 +9,16 @@ var mode = 1;
 var skybox = null;
 var runChart = true;
 var numMeshes = 0;
+var drawCalls = 0;
+
+var stats = null;
 
 function init()
 {
+	stats = new Stats();
+	stats.showPanel(0);
+	document.getElementById("stats2").appendChild(stats.dom);
+
 	//create the rendering context
 	var context = GL.create({width: window.innerWidth, height: window.innerHeight, webgl2:true});
 	var renderer = new RD.Renderer(context);
@@ -74,6 +81,8 @@ function init()
 
 	//main draw function
 	context.ondraw = function(){
+		stats.begin();
+		drawCalls = 0;
 		renderer.clear(bg_color);
 		//Depending on the mode we compute lightculling/g-buffer and render the scene
 		switch(mode) {
@@ -121,6 +130,9 @@ function init()
 		}
 		if(debuglight)
 			lights.light_debug(camera);
+
+		document.getElementById("drawcalls").innerHTML = "Number of draw calls: "+drawCalls;
+		stats.end();
 	}
 
 	//main update

@@ -6776,6 +6776,7 @@ var temp_attribs_array_zero = new Uint8Array(16); //should be filled with zeros 
 
 Shader.prototype.drawBuffers = function(vertexBuffers, indexBuffer, mode, range_start, range_length)
 {
+	drawCalls++;
 	if(range_length == 0) return;
 
 	var gl = this.gl;
