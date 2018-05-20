@@ -6829,31 +6829,7 @@ Shader.prototype.drawBuffers = function(vertexBuffers, indexBuffer, mode, range_
 
 	// Draw the geometry.
 	if (length && (!indexBuffer || indexBuffer.buffer)) {
-	  if (indexBuffer) {
-		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer.buffer);
-		if(timerQuery){
-			timerQuery = gl.getExtension("EXT_disjoint_timer_query");
-			query = timerQuery.createQueryEXT();
-			timerQuery.beginQueryEXT(timerQuery.TIME_ELAPSED_EXT, query);
-			/*var startQuery = timerQuery.createQueryEXT();
-        	var endQuery = timerQuery.createQueryEXT();
-        	timerQuery.queryCounterEXT(startQuery, timerQuery.TIMESTAMP_EXT);*/
-		}
 		gl.drawElements(mode, length, indexBuffer.buffer.gl_type, offset); //gl.UNSIGNED_SHORT
-		if(timerQuery){
-			timerQuery.endQueryEXT(timerQuery.TIME_ELAPSED_EXT);
-			countTimeElapsedShader();
-			/*timerQuery.queryCounterEXT(endQuery, timerQuery.TIMESTAMP_EXT);
-			var available = timerQuery.getQueryObjectEXT(endQuery, timerQuery.QUERY_RESULT_AVAILABLE_EXT);
-	        var disjoint = gl.getParameter(timerQuery.GPU_DISJOINT_EXT);
-	        console.log(timerQuery.QUERY_RESULT_AVAILABLE_EXT);
-
-	        if (available && !disjoint) {
-	          var timeStart = timerQuery.getQueryObjectEXT(startQuery, timerQuery.QUERY_RESULT_EXT);
-	          var timeEnd = timerQuery.getQueryObjectEXT(endQuery, timerQuery.QUERY_RESULT_EXT);
-	          console.log(timeEnd - timeStart);
-	        }*/
-		}
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 	  } else {
 		gl.drawArrays(mode, offset, length);

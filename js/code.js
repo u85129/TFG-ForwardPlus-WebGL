@@ -12,6 +12,7 @@ var drawCalls = 0;
 var stats = null;
 var timerQuery = null;
 var query = null;
+var available = false;
 
 function init()
 {
@@ -84,6 +85,20 @@ function init()
 		stats.begin();
 		drawCalls = 0;
 		renderer.clear(bg_color);
+		if(timerQuery){
+			available = timerQuery.getQueryObjectEXT(query, timerQuery.QUERY_RESULT_AVAILABLE_EXT);
+			//var disjoint = gl.getParamater(timerQuery.GPU_DISJOINT_EXT);
+			if (available) {
+			  // See how much time the rendering of the object took in nanoseconds.
+			  var timeElapsed = timerQuery.getQueryObjectEXT(query, timerQuery.QUERY_RESULT_EXT);
+			  console.log(timeElapsed/1000000);
+			}
+			//query = timerQuery.createQueryEXT();
+		    timerQuery.beginQueryEXT(timerQuery.TIME_ELAPSED_EXT, query);
+		    
+		}
+		
+
 		//Depending on the mode we compute lightculling/g-buffer and render the scene
 		switch(mode) {
 			case 1: // FORWARD +
@@ -133,6 +148,11 @@ function init()
 
 		document.getElementById("drawcalls").innerHTML = "Number of draw calls: "+drawCalls;
 		stats.end();
+if(timerQuery){
+			timerQuery.endQueryEXT(timerQuery.TIME_ELAPSED_EXT);
+			
+		}
+		
 	}
 
 	//main update

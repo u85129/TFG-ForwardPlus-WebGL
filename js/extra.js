@@ -1,17 +1,4 @@
 
-var countTimeElapsedShader = function(){
-	if(timerQuery){
-		var available = timerQuery.getQueryObjectEXT(query, timerQuery.QUERY_RESULT_AVAILABLE_EXT);
-		var disjoint = gl.getParameter(timerQuery.GPU_DISJOINT_EXT);
-		
-		if(available && !disjoint){
-			var timeElapsed = timerQuery.getQueryObjectEXT(query,timerQuery.QUERY_RESULT_EXT);
-			console.log(timeElapsed);
-		}
-	}
-}
-
-
 var calculateFrames = function(dt){
 	if(mediaFps == Infinity)
 		sumFrames = totalCounts = 0;
@@ -75,7 +62,7 @@ var buildCity = function(scene){
 			scene.root.addChild( suelo );
 		}
 	}
-/*
+
 	var build1 = new RD.SceneNode({
 		position: [-300,0,-300],
 		scaling: [4,4,4],
@@ -461,6 +448,6 @@ var buildCity = function(scene){
 			});
 			scene.root.addChild( lamp );
 		}
-	}*/
+	}
 }
 
