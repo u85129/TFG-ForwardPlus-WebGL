@@ -7493,7 +7493,8 @@ GL.create = function(options) {
 		console.log("2 "+gl.extensions["EXT_disjoint_timer_query_webgl2"]);
 	}else if(gl.webgl_version == 1){
 		gl.extensions["EXT_disjoint_timer_query"] = gl.getExtension("EXT_disjoint_timer_query");
-		console.log("1 "+gl.extensions["EXT_disjoint_timer_query"]);
+		//var query = gl.extensions["EXT_disjoint_timer_query"].createQueryEXT();
+		console.log(gl.getSupportedExtensions());
 	}
 	//FIN ADDED BY DANI
 
