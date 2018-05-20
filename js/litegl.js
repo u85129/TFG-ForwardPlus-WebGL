@@ -7488,8 +7488,13 @@ GL.create = function(options) {
 	gl.extensions["WEBGL_lose_context"] = gl.getExtension("WEBGL_lose_context") || gl.getExtension("WEBKIT_WEBGL_lose_context") || gl.getExtension("MOZ_WEBGL_lose_context");
 
 	//ADDED BY DANI
-	gl.extensions["disjoint_timer_query"] = gl.getExtension("EXT_disjoint_timer_query");
-	console.log(gl.getExtension('EXT_disjoint_timer_query'));
+	if(gl.webgl_version == 2){
+		gl.extensions["EXT_disjoint_timer_query_webgl2"] = gl.getExtension("EXT_disjoint_timer_query_webgl2");
+		console.log("2 "+gl.extensions["EXT_disjoint_timer_query_webgl2"]);
+	}else if(gl.webgl_version == 1){
+		gl.extensions["EXT_disjoint_timer_query"] = gl.getExtension("EXT_disjoint_timer_query");
+		console.log("1 "+gl.extensions["EXT_disjoint_timer_query"]);
+	}
 	//FIN ADDED BY DANI
 
 	//for float textures
