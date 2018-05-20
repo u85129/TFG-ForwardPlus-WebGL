@@ -6831,7 +6831,29 @@ Shader.prototype.drawBuffers = function(vertexBuffers, indexBuffer, mode, range_
 	if (length && (!indexBuffer || indexBuffer.buffer)) {
 	  if (indexBuffer) {
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer.buffer);
+		if(timerQuery){
+			timerQuery = gl.getExtension("EXT_disjoint_timer_query");
+			query = timerQuery.createQueryEXT();
+			timerQuery.beginQueryEXT(timerQuery.TIME_ELAPSED_EXT, query);
+			/*var startQuery = timerQuery.createQueryEXT();
+        	var endQuery = timerQuery.createQueryEXT();
+        	timerQuery.queryCounterEXT(startQuery, timerQuery.TIMESTAMP_EXT);*/
+		}
 		gl.drawElements(mode, length, indexBuffer.buffer.gl_type, offset); //gl.UNSIGNED_SHORT
+		if(timerQuery){
+			timerQuery.endQueryEXT(timerQuery.TIME_ELAPSED_EXT);
+			countTimeElapsedShader();
+			/*timerQuery.queryCounterEXT(endQuery, timerQuery.TIMESTAMP_EXT);
+			var available = timerQuery.getQueryObjectEXT(endQuery, timerQuery.QUERY_RESULT_AVAILABLE_EXT);
+	        var disjoint = gl.getParameter(timerQuery.GPU_DISJOINT_EXT);
+	        console.log(timerQuery.QUERY_RESULT_AVAILABLE_EXT);
+
+	        if (available && !disjoint) {
+	          var timeStart = timerQuery.getQueryObjectEXT(startQuery, timerQuery.QUERY_RESULT_EXT);
+	          var timeEnd = timerQuery.getQueryObjectEXT(endQuery, timerQuery.QUERY_RESULT_EXT);
+	          console.log(timeEnd - timeStart);
+	        }*/
+		}
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 	  } else {
 		gl.drawArrays(mode, offset, length);
@@ -7488,14 +7510,7 @@ GL.create = function(options) {
 	gl.extensions["WEBGL_lose_context"] = gl.getExtension("WEBGL_lose_context") || gl.getExtension("WEBKIT_WEBGL_lose_context") || gl.getExtension("MOZ_WEBGL_lose_context");
 
 	//ADDED BY DANI
-	if(gl.webgl_version == 2){
-		gl.extensions["EXT_disjoint_timer_query_webgl2"] = gl.getExtension("EXT_disjoint_timer_query_webgl2");
-		console.log("2 "+gl.extensions["EXT_disjoint_timer_query_webgl2"]);
-	}else if(gl.webgl_version == 1){
-		gl.extensions["EXT_disjoint_timer_query"] = gl.getExtension("EXT_disjoint_timer_query");
-		//var query = gl.extensions["EXT_disjoint_timer_query"].createQueryEXT();
-		console.log(gl.getSupportedExtensions());
-	}
+	gl.extensions["EXT_disjoint_timer_query"] = gl.getExtension("EXT_disjoint_timer_query");
 	//FIN ADDED BY DANI
 
 	//for float textures

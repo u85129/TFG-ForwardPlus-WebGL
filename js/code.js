@@ -7,11 +7,11 @@ var multiplier = 1;
 var fps = mediaFps = totalCounts = sumFrames = 0;
 var mode = 1;
 var skybox = null;
-var runChart = true;
 var numMeshes = 0;
 var drawCalls = 0;
-
 var stats = null;
+var timerQuery = null;
+var query = null;
 
 function init()
 {
@@ -260,7 +260,15 @@ function init()
 			fpsData = [];
 		}
 		if(e.keyCode == 80){ // P
-			runChart = !runChart;
+			if(gl.extensions["EXT_disjoint_timer_query"]){
+				if(!timerQuery){
+					timerQuery = gl.extensions["EXT_disjoint_timer_query"];
+					query = timerQuery.createQueryEXT();
+				}else{
+					timerQuery = null;
+					query = null;
+				}
+			}
 		}
 		if(e.keyCode == 75){ // K
 			colorLights = !colorLights;

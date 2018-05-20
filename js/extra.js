@@ -1,16 +1,16 @@
-var fpsData = [];
 
-$(document).ready(function(){
-	$("#graph").sparkline(fpsData, {
-	    type: 'line',
-	    width: '500',
-	    height: '200',
-	    chartRangeMin: 0,
-	    chartRangeMax: 70,
-	    drawNormalOnTop: false,
-		tooltipSuffix: ' frames per second'
-	});
-})
+var countTimeElapsedShader = function(){
+	if(timerQuery){
+		var available = timerQuery.getQueryObjectEXT(query, timerQuery.QUERY_RESULT_AVAILABLE_EXT);
+		var disjoint = gl.getParameter(timerQuery.GPU_DISJOINT_EXT);
+		
+		if(available && !disjoint){
+			var timeElapsed = timerQuery.getQueryObjectEXT(query,timerQuery.QUERY_RESULT_EXT);
+			console.log(timeElapsed);
+		}
+	}
+}
+
 
 var calculateFrames = function(dt){
 	if(mediaFps == Infinity)
@@ -21,20 +21,6 @@ var calculateFrames = function(dt){
 	mediaFps = sumFrames / totalCounts;
 	document.getElementById("fps").innerHTML = "FPS: "+Math.round(fps)+"<br>Media: "+Math.round(mediaFps)+"<br>Number of lights: "+LI.NUM_LIGHTS;
 
-	if(runChart){
-		fpsData.push(fps);
-		if (fpsData.length > 100)
-	    	fpsData.splice(0,1);
-	    $("#graph").sparkline(fpsData, {
-		    type: 'line',
-		    width: '500',
-		    height: '200',
-		    chartRangeMin: 0,
-		    chartRangeMax: 70,
-		    drawNormalOnTop: false,
-			tooltipSuffix: ' frames per second'
-		});
-	}	
 }
 
 var manageControls = function(dt, camera){
@@ -89,7 +75,7 @@ var buildCity = function(scene){
 			scene.root.addChild( suelo );
 		}
 	}
-
+/*
 	var build1 = new RD.SceneNode({
 		position: [-300,0,-300],
 		scaling: [4,4,4],
@@ -475,6 +461,6 @@ var buildCity = function(scene){
 			});
 			scene.root.addChild( lamp );
 		}
-	}
+	}*/
 }
 
