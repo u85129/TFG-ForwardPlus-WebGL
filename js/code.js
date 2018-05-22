@@ -259,10 +259,10 @@ if(timerQuery){
 			fpsData = [];
 		}
 		if(e.keyCode == 109){ // -
-			LI.LIGHT_RADIUS -= 2;
+			LI.LIGHT_RADIUS /= 2;
 		}
 		if(e.keyCode == 107){ // +
-			LI.LIGHT_RADIUS += 2;
+			LI.LIGHT_RADIUS *= 2;
 		}
 		if(e.keyCode == 90){ // Z
 			LI.TILE_SIZE = 8;

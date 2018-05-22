@@ -18,7 +18,7 @@ var buffer = quad = null;
 
 
 LI.init = function (tileSize, lightRadius) {
-    NUM_LIGHTS = LI.NUM_LIGHTS = numLights = 256;
+    NUM_LIGHTS = LI.NUM_LIGHTS = numLights = 1024;
     TILE_SIZE = LI.TILE_SIZE = tileSize;
     LIGHT_RADIUS = LI.LIGHT_RADIUS = lightRadius;
 
@@ -96,6 +96,7 @@ LI.init = function (tileSize, lightRadius) {
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
     quad = GL.Mesh.getScreenQuad();
+
 }
 
 LI.light_debug = function(camera) {
