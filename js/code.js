@@ -73,7 +73,8 @@ function init()
 	//create camera
 	var camera = new RD.Camera();
 	camera.perspective( 45, gl.canvas.width / gl.canvas.height, 1, 1000 );
-	camera.lookAt( [0,50,100],[0,0,0],[0,1,0] );
+	camera.lookAt( [0,50,100],[0,0,-100],[0,1,0] );
+	camera._position.set([500,300,-100]);
 	
 	//global settings
 	var bg_color = vec4.fromValues(0.0,0.0,0.0,1);
@@ -148,7 +149,7 @@ function init()
 
 		document.getElementById("drawcalls").innerHTML = "Number of draw calls: "+drawCalls;
 		stats.end();
-if(timerQuery){
+		if(timerQuery){
 			timerQuery.endQueryEXT(timerQuery.TIME_ELAPSED_EXT);
 			
 		}
@@ -221,42 +222,34 @@ if(timerQuery){
 		if(e.keyCode == 49){ // 1
 			mode = 1;
 			sumFrames = totalCounts = 0;
-			fpsData = [];
 		}
 		if(e.keyCode == 50){ // 2
 			mode = 2;
 			sumFrames = totalCounts = 0;
-			fpsData = [];
 		}
 		if(e.keyCode == 51){ // 3
 			mode = 3;
 			sumFrames = totalCounts = 0;
-			fpsData = [];
 		}
 		if(e.keyCode == 52){ // 4
 			mode = 4;
 			sumFrames = totalCounts = 0;
-			fpsData = [];
 		}
 		if(e.keyCode == 53){ // 5
 			mode = 5;
 			sumFrames = totalCounts = 0;
-			fpsData = [];
 		}
 		if(e.keyCode == 54){ // 6
 			mode = 6;
 			sumFrames = totalCounts = 0;
-			fpsData = [];
 		}
 		if(e.keyCode == 55){ // 7
 			mode = 7;
 			sumFrames = totalCounts = 0;
-			fpsData = [];
 		}
 		if(e.keyCode == 56){ // 8
 			mode = 8;
 			sumFrames = totalCounts = 0;
-			fpsData = [];
 		}
 		if(e.keyCode == 109){ // -
 			LI.LIGHT_RADIUS /= 2;
@@ -267,17 +260,14 @@ if(timerQuery){
 		if(e.keyCode == 90){ // Z
 			LI.TILE_SIZE = 8;
 			sumFrames = totalCounts = 0;
-			fpsData = [];
 		}
 		if(e.keyCode == 88){ // X
 			LI.TILE_SIZE = 16;
 			sumFrames = totalCounts = 0;
-			fpsData = [];
 		}
 		if(e.keyCode == 67){ // C
 			LI.TILE_SIZE = 32;
 			sumFrames = totalCounts = 0;
-			fpsData = [];
 		}
 		if(e.keyCode == 80){ // P
 			if(gl.extensions["EXT_disjoint_timer_query"]){
@@ -297,7 +287,16 @@ if(timerQuery){
 		if(e.keyCode == 57){ // 9
 			mode = 9;
 			sumFrames = totalCounts = 0;
-			fpsData = [];
+		}
+		if(e.keyCode == 77){ // M
+			camera.lookAt( [0,50,100],[0,0,-100],[0,1,0] );
+			camera._position.set([500,300,-100]);
+			sumFrames = totalCounts = 0;
+		}
+		if(e.keyCode == 78){ // N
+			camera.lookAt( [0,50,100],[0,0,150],[0,1,0] );
+			camera._position.set([500,150,200]);
+			sumFrames = totalCounts = 0;
 		}
 	}
 
